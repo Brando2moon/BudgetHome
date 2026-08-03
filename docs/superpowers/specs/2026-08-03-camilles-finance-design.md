@@ -24,11 +24,15 @@ The app must work on phones, desktop browsers, and a full-screen Raspberry Pi mo
 
 ## Access
 
-- One private Supabase Auth account.
+- The entire application is login-gated; no dashboard, financial record, calendar, background media, or app data is accessible before authentication.
+- One private Supabase Auth account is created directly in Supabase.
+- Public registration is disabled. There is no sign-up page.
 - Only the user manages the household budget.
 - The spouse's income is recorded as a household income source but requires no separate login.
-- All exposed tables use row-level security scoped to the authenticated owner.
+- Passwords are handled only by Supabase Auth and are never committed, hardcoded, logged, placed in the README, or stored in application tables.
+- All exposed tables and storage objects use row-level security scoped to the authenticated owner.
 - No secret or service-role key is exposed in the browser.
+- Unauthenticated requests redirect to the sign-in screen; authenticated sessions use secure Supabase session handling.
 
 ## Main areas
 
@@ -172,6 +176,11 @@ Use the user's current household estimates as editable starting values:
 - T-Mobile: $160 around the 15th
 - Aaron's: $140 due late month
 - Other existing bills and goals from the budget workbook remain editable
+
+## Repository documentation
+
+- Keep README.md short: product name, one-paragraph purpose, setup commands, required environment-variable names, and deployment steps.
+- Never include credentials, personal login details, secret keys, or financial data in the README.
 
 ## Out of scope for the first release
 
