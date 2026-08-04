@@ -1,0 +1,137 @@
+  $('#character-form').addEventListener('submit', saveCharacterFromForm);
+  $('#new-character').addEventListener('click', clearCharacterForm);
+  $('#character-list').addEventListener('click', handleCharacterListClick);
+
+  $('#animation-speed').addEventListener('change', () => {
+    state.animationSpeed = Number($('#animation-speed').value) || 1; saveState(); startLoop();
+  });
+  $('#export-data').addEventListener('click', exportData);
+  $('#import-data').addEventListener('change', importData);
+  $('#reset-data').addEventListener('click', resetData);
+}
+
+function showView(view) {
+  activeView = view;
+  $$('.view').forEach((section) => section.classList.toggle('active', section.dataset.view === view));
+  $$('.nav-button').forEach((button) => button.classList.toggle('active', button.dataset.view === view));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function togglePause() {
+  paused = !paused;
+  const button = $('#pause-animation');
+  button.textContent = paused ? 'Resume bank' : 'Pause bank';
+  button.setAttribute('aria-pressed', String(paused));
+  if (paused) { clearTimeout(loopTimer); $('#loop-status').textContent = 'Bank animation paused.'; }
+  else startLoop();
+}
+
+function saveBillFromForm(event) {
+  event.preventDefault();
+  const amountCents = parseMoneyToCents($('#bill-amount').value);
+  const paidCents = parseMoneyToCents($('#bill-paid').value);
+  if (amountCents === null || amountCents <= 0 || paidCents === null) return toast('Enter valid bill and paid amounts.');
+  const existingId = $('#bill-id').value;
+  const name = $('#bill-name').value.trim();
+  const bill = {
+    id: existingId || uniqueBillId(toSlug(name)), name, amountCents, paidCents: Math.min(paidCents, amountCents),
+    dueDate: $('#bill-due-date').value || null, dueLabel: $('#bill-due-label').value.trim() || null,
+    category: $('#bill-category').value, recurring: $('#bill-recurring').checked,
+  };
+  if (existingId) state.bills = state.bills.map((item) => item.id === existingId ? bill : item);
+  else state.bills.push(bill);
+  saveState(); clearBillForm(); render(); toast(existingId ? 'Bill updated.' : 'Bill added to the bank.');
+}
+
+function handleBillTableClick(event) {
+  const editId = event.target.dataset.editBill;
+  const deleteId = event.target.dataset.deleteBill;
+  if (editId) fillBillForm(state.bills.find((bill) => bill.id === editId));
+  if (deleteId && confirm('Delete this bill department?')) {
+    state.bills = state.bills.filter((bill) => bill.id !== deleteId); saveState(); render(); toast('Bill deleted.');
+  }
+}
+
+function fillBillForm(bill) {
+  if (!bill) return;
+  $('#bill-id').value = bill.id; $('#bill-name').value = bill.name; $('#bill-amount').value = (bill.amountCents / 100).toFixed(2);
+  $('#bill-due-date').value = bill.dueDate || ''; $('#bill-due-label').value = bill.dueLabel || ''; $('#bill-category').value = bill.category || 'Other';
+  $('#bill-paid').value = ((bill.paidCents || 0) / 100).toFixed(2); $('#bill-recurring').checked = Boolean(bill.recurring); showView('bills');
+}
+
+function clearBillForm() {
+  $('#bill-form').reset(); $('#bill-id').value = ''; $('#bill-paid').value = '0.00'; $('#bill-recurring').checked = true;
+}
+
+function saveCharacterFromForm(event) {
+  event.preventDefault();
+  const character = formCharacter();
+  const existingId = $('#character-id').value;
+  character.id = existingId || uniqueCharacterId(toSlug(character.name));
+  if (existingId) state.characters = state.characters.map((item) => item.id === existingId ? character : item);
+  else state.characters.push(character);
+  state.selectedCharacterId = character.id;
+  saveState(); clearCharacterForm(); render(); toast('Character saved and added to the next bank loop.');
+}
+
+function handleCharacterListClick(event) {
+  const selectId = event.target.dataset.selectCharacter;
+  const editId = event.target.dataset.editCharacter;
+  const deleteId = event.target.dataset.deleteCharacter;
+  if (selectId) { state.selectedCharacterId = selectId; saveState(); render(); }
+  if (editId) fillCharacterForm(state.characters.find((character) => character.id === editId));
+  if (deleteId && state.characters.length > 1 && confirm('Delete this character?')) {
+    state.characters = state.characters.filter((character) => character.id !== deleteId);
+    if (state.selectedCharacterId === deleteId) state.selectedCharacterId = state.characters[0].id;
+    saveState(); render(); toast('Character deleted.');
+  }
+}
+
+function fillCharacterForm(character) {
+  if (!character) return;
+  $('#character-id').value = character.id; $('#character-name').value = character.name; $('#character-skin').value = character.skinTone;
+  $('#character-hair-style').value = character.hairstyle; $('#character-body-style').value = character.bodyStyle;
+  $('#character-hair-color').value = character.hairColor; $('#character-shirt-color').value = character.shirtColor; $('#character-pants-color').value = character.pantsColor;
+  applyCharacterStyle($('#character-preview'), character); showView('characters');
+}
+
+function clearCharacterForm() {
+  $('#character-form').reset(); $('#character-id').value = ''; $('#character-hair-color').value = '#1c120d'; $('#character-shirt-color').value = '#7c3aed'; $('#character-pants-color').value = '#2e1065';
+  applyCharacterStyle($('#character-preview'), formCharacter());
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = 'camilles-finance-backup.json'; link.click(); URL.revokeObjectURL(url);
+}
+
+async function importData(event) {
+  const file = event.target.files?.[0]; if (!file) return;
+  try {
+    const imported = JSON.parse(await file.text());
+    if (!Array.isArray(imported.bills) || !Array.isArray(imported.characters)) throw new Error('Invalid backup');
+    state = { ...createInitialState(), ...imported }; saveState(); render(); startLoop(); toast('Backup imported.');
+  } catch { toast('That backup file is not valid.'); }
+  event.target.value = '';
+}
+
+function resetData() {
+  if (!confirm('Reset every bill, character, savings goal, and funding amount?')) return;
+  state = createInitialState(); localStorage.removeItem(STORAGE_KEY); saveState('Reset complete'); render(); startLoop(); toast('App reset to your August bill list.');
+}
+
+function uniqueBillId(base) { let id = base; let i = 2; while (state.bills.some((bill) => bill.id === id)) id = `${base}-${i++}`; return id; }
+function uniqueCharacterId(base) { let id = base; let i = 2; while (state.characters.some((character) => character.id === id)) id = `${base}-${i++}`; return id; }
+function formatDate(iso) { return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(`${iso}T12:00:00`)); }
+function statusLabel(status) { return ({ overdue: 'Past due', 'due-today': 'Due today', upcoming: 'Upcoming', recurring: 'Recurring', partial: 'Part funded', funded: 'Funded', paid: 'Paid', saving: 'Saving' })[status] || status; }
+function categoryIcon(category) { return ({ Housing: '🏠', Transportation: '🚗', Utilities: '⚡', Insurance: '🛡', Subscriptions: '📺', Personal: '👤' })[category] || '💵'; }
+function escapeHtml(value) { return String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]); }
+
+bindEvents();
+render();
+queuePlan();
+startLoop();
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}));
+}
