@@ -1,7 +1,15 @@
-const CACHE_NAME = 'camilles-finance-v4';
+const CACHE_NAME = 'camilles-finance-v5';
 const ASSETS = [
-  './', './index.html', './styles.css', './reference-theme.css', './app.js', './src/budgetEngine.js',
-  './app-source-1.txt', './app-source-2.txt', './app-source-3.txt', './manifest.webmanifest',
+  './',
+  './index.html',
+  './styles.css',
+  './app.js',
+  './src/budgetEngine.js',
+  './manifest.webmanifest',
+  './assets/approved-bank-reference-4k-1.txt',
+  './assets/approved-bank-reference-4k-2.txt',
+  './assets/approved-bank-reference-4k-3.txt',
+  './assets/approved-bank-reference-4k-4.txt',
 ];
 
 self.addEventListener('install', (event) => {
