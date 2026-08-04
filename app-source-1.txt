@@ -10,6 +10,8 @@ import {
   summarizeBills,
   summarizeSavingsBoxes,
   toSlug,
+  normalizePaychecks,
+  routeBillsToPaychecks,
 } from './src/budgetEngine.js';
 
 const STORAGE_KEY = 'camilles-finance-bank-v1';
@@ -52,7 +54,7 @@ function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!saved || !Array.isArray(saved.bills) || !Array.isArray(saved.characters)) return createInitialState();
-    return { ...createInitialState(), ...saved, savings: normalizeSavings(saved.savings) };
+    return { ...createInitialState(), ...saved, savings: normalizeSavings(saved.savings), paychecks: normalizePaychecks(saved.paychecks) };
   } catch {
     return createInitialState();
   }
@@ -60,6 +62,7 @@ function loadState() {
 
 function saveState(message = 'Saved locally') {
   state.savings = normalizeSavings(state.savings);
+  state.paychecks = normalizePaychecks(state.paychecks);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   $('#save-indicator').textContent = message;
   queuePlan();
@@ -80,6 +83,7 @@ function render() {
   renderCalendar();
   renderSavings();
   renderCharacters();
+  renderPaychecks();
   renderBank();
   $('#animation-speed').value = String(state.animationSpeed || 1);
 }
@@ -87,10 +91,15 @@ function render() {
 function renderSummary() {
   const summary = summarizeBills(state.bills, state.asOfDate);
   const result = allocateAvailableFunds(state.bills, state.availableCents, state.asOfDate);
+  const paycheckPlan = routeBillsToPaychecks(state.bills, state.paychecks);
+  const totalPaycheckCents = paycheckPlan.paychecks.reduce((sum, paycheck) => sum + paycheck.amountCents, 0);
+  const totalShortageCents = paycheckPlan.paychecks.reduce((sum, paycheck) => sum + paycheck.shortageCents, 0);
   const availableAfterBills = result.remainingCents;
   $('#summary-grid').innerHTML = [
     ['August bills', summary.totalCents, 'total'],
     ['Past due', summary.overdueCents, 'overdue'],
+    ['Paychecks loaded', totalPaycheckCents, 'remaining'],
+    ['Paycheck shortage', totalShortageCents, totalShortageCents > 0 ? 'overdue' : 'available'],
     ['Still outstanding', summary.outstandingCents, 'remaining'],
     ['Safe after plan', availableAfterBills, 'available'],
   ].map(([label, cents, kind]) => `<article class="summary-card ${kind}"><span>${label}</span><strong>${formatMoney(cents)}</strong></article>`).join('');
@@ -106,18 +115,36 @@ function renderBank() {
   const result = allocateAvailableFunds(state.bills, state.availableCents, state.asOfDate);
   currentAllocations = result.allocations;
   state.savings = normalizeSavings(state.savings);
+  state.paychecks = normalizePaychecks(state.paychecks);
+  const paycheckPlan = routeBillsToPaychecks(state.bills, state.paychecks);
   const selected = selectedCharacter();
   applyCharacterStyle($('#pixel-character'), selected);
 
-  $('#bank-rooms').innerHTML = currentAllocations.map((allocation) => {
+  $('#bank-rooms').innerHTML = currentAllocations.map((allocation, index) => {
     const bill = state.bills.find((item) => item.id === allocation.billId);
+    const assignedPaycheck = paycheckPlan.assignments.get(allocation.billId);
+    const paycheckLabel = assignedPaycheck ? formatDate(assignedPaycheck.date) : 'Unassigned';
     const status = allocation.status;
     const due = bill?.dueDate ? formatDate(bill.dueDate) : bill?.dueLabel || 'Recurring';
-    return `<article class="bank-room bank-department ${status}" data-room-id="${escapeHtml(allocation.billId)}">
-      <div class="room-header"><span class="room-name">${escapeHtml(allocation.name)}</span><span>${categoryIcon(bill?.category)}</span></div>
+    const roomTheme = roomThemeClass(bill?.category, index);
+    const roomTitle = roomOfficeTitle(allocation.name, bill?.category);
+    return `<article class="bank-room bank-department ${status} ${roomTheme}" data-room-id="${escapeHtml(allocation.billId)}" data-category="${escapeHtml(bill?.category || 'Other')}">
+      <div class="room-banner">${categoryIcon(bill?.category)} <span>${escapeHtml(roomTitle)}</span></div>
+      <div class="room-stage">
+        <div class="room-shelf"><span></span><span></span><span></span></div>
+        <div class="room-clock"></div>
+        <div class="room-plant"></div>
+        <div class="room-desk">
+          <div class="desk-screen">${formatMoney(allocation.fundedCents)}</div>
+          <div class="desk-keyboard"></div>
+          <div class="desk-mug"></div>
+        </div>
+      </div>
       <div class="room-screen">
         <div class="room-amount">${formatMoney(allocation.outstandingCents)}</div>
+        <div>${escapeHtml(roomMoodCopy(bill?.category, status))}</div>
         <div>Due: ${escapeHtml(due)}</div>
+        <div>Closest paycheck: ${escapeHtml(paycheckLabel)}</div>
         <div>Assigned: ${formatMoney(allocation.fundedCents)}</div>
         <span class="status-chip ${status}">${statusLabel(status)}</span>
       </div>
@@ -142,6 +169,33 @@ function renderVaultRoom() {
   $('#bank-vault').classList.toggle('funded', savings.targetCents > 0 && savings.savedCents >= savings.targetCents);
 }
 
+
+function renderPaychecks() {
+  state.paychecks = normalizePaychecks(state.paychecks);
+  const paycheckPlan = routeBillsToPaychecks(state.bills, state.paychecks);
+  $('#paycheck-editor').innerHTML = paycheckPlan.paychecks.map((paycheck, index) => `
+    <article class="paycheck-card ${paycheck.shortageCents > 0 ? 'short' : 'covered'}">
+      <div class="paycheck-card-header">
+        <div>
+          <p class="eyebrow">PAYCHECK ${index + 1}</p>
+          <h4>${formatDate(paycheck.date)}</h4>
+        </div>
+        <span class="status-chip ${paycheck.shortageCents > 0 ? 'overdue' : 'funded'}">${paycheck.shortageCents > 0 ? 'Short' : 'Covered'}</span>
+      </div>
+      <label>Amount for this paycheck
+        <span class="money-input"><span>$</span><input data-paycheck-id="${escapeHtml(paycheck.id)}" data-paycheck-amount inputmode="decimal" value="${(paycheck.amountCents / 100).toFixed(2)}" /></span>
+      </label>
+      <div class="paycheck-totals">
+        <span>Assigned ${formatMoney(paycheck.assignedCents)}</span>
+        <span>${paycheck.remainingCents >= 0 ? `Left ${formatMoney(paycheck.remainingCents)}` : `Short ${formatMoney(paycheck.shortageCents)}`}</span>
+      </div>
+      <div class="paycheck-bills">${paycheck.bills.length ? paycheck.bills.map((bill) => `<div class="paycheck-bill-line"><span>${escapeHtml(bill.name)}</span><strong>${formatMoney(bill.outstandingCents)}</strong></div>`).join('') : '<p class="help-text">No bills routed here.</p>'}</div>
+    </article>
+  `).join('');
+  const trouble = paycheckPlan.paychecks.filter((paycheck) => paycheck.shortageCents > 0);
+  $('#paycheck-breakdown').innerHTML = trouble.length ? trouble.map((paycheck) => `<div class="paycheck-warning">${formatDate(paycheck.date)} is short by <strong>${formatMoney(paycheck.shortageCents)}</strong>.</div>`).join('') : '<div class="paycheck-ok">All current paychecks cover their closest bills.</div>';
+}
+
 function renderBills() {
   $('#bill-count').textContent = `${state.bills.length} bills`;
   $('#bill-table-body').innerHTML = state.bills.map((bill) => {
@@ -151,26 +205,3 @@ function renderBills() {
       <td>${bill.dueDate ? formatDate(bill.dueDate) : escapeHtml(bill.dueLabel || 'Recurring')}</td>
       <td>${formatMoney(bill.amountCents)}</td><td>${formatMoney(bill.paidCents || 0)}</td>
       <td><span class="status-chip ${status}">${statusLabel(status)}</span></td>
-      <td><div class="row-actions"><button class="small-button" data-edit-bill="${escapeHtml(bill.id)}" type="button">Edit</button><button class="small-button" data-delete-bill="${escapeHtml(bill.id)}" type="button">Delete</button></div></td>
-    </tr>`;
-  }).join('');
-}
-
-function renderCalendar() {
-  const events = new Map();
-  for (const bill of state.bills.filter((item) => item.dueDate?.startsWith('2026-08'))) {
-    const day = Number(bill.dueDate.slice(-2));
-    const list = events.get(day) || [];
-    list.push(bill);
-    events.set(day, list);
-  }
-  const cells = [];
-  for (let blank = 0; blank < 6; blank++) cells.push('<div class="calendar-day empty"></div>');
-  for (let day = 1; day <= 31; day++) {
-    const dayEvents = events.get(day) || [];
-    cells.push(`<div class="calendar-day"><div class="calendar-date">${day}</div>${dayEvents.map((bill) => `<div class="calendar-event ${classifyBill(bill, state.asOfDate)}">${escapeHtml(bill.name)}<br>${formatMoney(bill.amountCents)}</div>`).join('')}</div>`);
-  }
-  $('#calendar-grid').innerHTML = cells.join('');
-  const sorted = [...state.bills].sort((a,b) => (a.dueDate || '9999').localeCompare(b.dueDate || '9999'));
-  $('#agenda-list').innerHTML = `<div class="section-heading"><h3>August agenda</h3><span class="badge">${state.bills.length} items</span></div>` + sorted.map((bill) => `<div class="agenda-item"><span>${categoryIcon(bill.category)}</span><div><strong>${escapeHtml(bill.name)}</strong><div>${bill.dueDate ? formatDate(bill.dueDate) : escapeHtml(bill.dueLabel || 'Recurring')}</div></div><strong>${formatMoney(bill.amountCents)}</strong></div>`).join('');
-}

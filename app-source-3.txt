@@ -1,3 +1,6 @@
+    event.preventDefault();
+    const boxes = [...$('#vault-box-editor').querySelectorAll('[data-vault-box-id]')].map((row, index) => {
+      const targetCents = parseMoneyToCents(row.querySelector('[data-vault-box-target]').value);
       const savedCents = parseMoneyToCents(row.querySelector('[data-vault-box-saved]').value);
       return {
         id: row.dataset.vaultBoxId || DEFAULT_SAVINGS_BOXES[index].id,
@@ -11,6 +14,7 @@
     saveState(); render(); toast('Savings Vault boxes updated.');
   });
   $('#bank-vault').addEventListener('click', () => showView('savings'));
+  $('#save-paychecks').addEventListener('click', savePaychecksFromBank);
 
   $('#character-form').addEventListener('input', () => applyCharacterStyle($('#character-preview'), formCharacter()));
   $('#character-form').addEventListener('submit', saveCharacterFromForm);
@@ -39,6 +43,20 @@ function togglePause() {
   button.setAttribute('aria-pressed', String(paused));
   if (paused) { clearTimeout(loopTimer); $('#loop-status').textContent = 'Bank animation paused.'; }
   else startLoop();
+}
+
+
+function savePaychecksFromBank() {
+  const rows = [...$$('[data-paycheck-amount]')];
+  const next = state.paychecks.map((paycheck) => {
+    const input = rows.find((row) => row.dataset.paycheckId === paycheck.id);
+    const amountCents = parseMoneyToCents(input?.value || '0');
+    return { ...paycheck, amountCents: amountCents === null ? 0 : amountCents };
+  });
+  state.paychecks = normalizePaychecks(next);
+  saveState('Paychecks saved');
+  render();
+  toast('Biweekly paycheck plan updated.');
 }
 
 function saveBillFromForm(event) {
@@ -125,7 +143,7 @@ async function importData(event) {
   try {
     const imported = JSON.parse(await file.text());
     if (!Array.isArray(imported.bills) || !Array.isArray(imported.characters)) throw new Error('Invalid backup');
-    state = { ...createInitialState(), ...imported }; saveState(); render(); startLoop(); toast('Backup imported.');
+    state = { ...createInitialState(), ...imported, paychecks: normalizePaychecks(imported.paychecks), savings: normalizeSavings(imported.savings) }; saveState(); render(); startLoop(); toast('Backup imported.');
   } catch { toast('That backup file is not valid.'); }
   event.target.value = '';
 }
@@ -140,9 +158,26 @@ function uniqueCharacterId(base) { let id = base; let i = 2; while (state.charac
 function formatDate(iso) { return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(`${iso}T12:00:00`)); }
 function statusLabel(status) { return ({ overdue: 'Past due', 'due-today': 'Due today', upcoming: 'Upcoming', recurring: 'Recurring', partial: 'Part funded', funded: 'Funded', paid: 'Paid', saving: 'Saving' })[status] || status; }
 function categoryIcon(category) { return ({ Housing: '🏠', Transportation: '🚗', Utilities: '⚡', Insurance: '🛡', Subscriptions: '📺', Personal: '👤' })[category] || '💵'; }
+function roomOfficeTitle(name, category) {
+  const suffix = ({ Housing: 'Office', Transportation: 'Garage', Utilities: 'Utility Room', Insurance: 'Office', Subscriptions: 'Studio', Personal: 'Office' })[category] || 'Office';
+  return `${name} ${suffix}`.replace(/\s+/g, ' ').trim();
+}
+function roomThemeClass(category, index) {
+  const map = { Housing: 'theme-housing', Transportation: 'theme-transportation', Utilities: 'theme-utilities', Insurance: 'theme-insurance', Subscriptions: 'theme-subscriptions', Personal: 'theme-personal' };
+  return map[category] || `theme-variant-${(index % 4) + 1}`;
+}
+function roomMoodCopy(category, status) {
+  const base = ({ Housing: 'Keeping the home covered.', Transportation: 'Keeping wheels moving.', Utilities: 'Powering everyday life.', Insurance: 'Protection standing by.', Subscriptions: 'Services on schedule.', Personal: 'Personal obligation desk.' })[category] || 'Tracking your money flow.';
+  if (status === 'overdue') return `${base} Needs attention now.`;
+  if (status === 'partial') return `${base} Deposit started.`;
+  if (status === 'funded') return `${base} Fully covered.`;
+  if (status === 'paid') return `${base} Already finished.`;
+  return base;
+}
 function escapeHtml(value) { return String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]); }
 
 bindEvents();
+loadBankReferenceArt();
 render();
 queuePlan();
 startLoop();

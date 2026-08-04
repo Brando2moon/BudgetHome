@@ -9,6 +9,9 @@ import {
   formatMoney,
   summarizeBills,
   summarizeSavingsBoxes,
+  generateBiweeklyPaychecks,
+  assignBillToClosestPaycheck,
+  routeBillsToPaychecks,
 } from '../src/budgetEngine.js';
 
 test('seeds the exact August bills and totals $2,789.82', () => {
@@ -76,4 +79,32 @@ test('summarizes savings from the individual safety-deposit boxes', () => {
     remainingCents: 115_000,
     progress: 23,
   });
+});
+
+test('creates biweekly paychecks starting on Friday August 7, 2026', () => {
+  const paychecks = generateBiweeklyPaychecks('2026-08-07', 4);
+  assert.deepEqual(paychecks.map((paycheck) => paycheck.date), [
+    '2026-08-07', '2026-08-21', '2026-09-04', '2026-09-18',
+  ]);
+});
+
+test('assigns a bill to the closest paycheck date', () => {
+  const paychecks = generateBiweeklyPaychecks('2026-08-07', 4);
+  const bill = { id: 'insurance', name: 'Insurance', dueDate: '2026-08-18', amountCents: 20_000, paidCents: 0 };
+  assert.equal(assignBillToClosestPaycheck(bill, paychecks).date, '2026-08-21');
+});
+
+test('routes bills into paycheck buckets and reports shortages', () => {
+  const paychecks = generateBiweeklyPaychecks('2026-08-07', 2);
+  paychecks[0].amountCents = 50_000;
+  paychecks[1].amountCents = 20_000;
+  const { paychecks: buckets } = routeBillsToPaychecks([
+    { id: 'car', name: 'Car', dueDate: '2026-08-11', amountCents: 36_200, paidCents: 0 },
+    { id: 'insurance', name: 'Insurance', dueDate: '2026-08-18', amountCents: 20_000, paidCents: 0 },
+    { id: 'gas', name: 'Gas', dueDate: '2026-08-18', amountCents: 10_000, paidCents: 0 },
+  ], paychecks);
+  assert.equal(buckets[0].assignedCents, 36_200);
+  assert.equal(buckets[0].remainingCents, 13_800);
+  assert.equal(buckets[1].assignedCents, 30_000);
+  assert.equal(buckets[1].shortageCents, 10_000);
 });

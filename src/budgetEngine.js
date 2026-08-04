@@ -30,6 +30,19 @@ export const DEFAULT_CHARACTER = Object.freeze({
   hairColor: '#1c120d',
 });
 
+export const PAYCHECK_START_DATE = '2026-08-07';
+export const DEFAULT_PAYCHECK_COUNT = 6;
+
+export function generateBiweeklyPaychecks(startDate = PAYCHECK_START_DATE, count = DEFAULT_PAYCHECK_COUNT) {
+  const start = new Date(`${startDate}T12:00:00`);
+  return Array.from({ length: count }, (_, index) => {
+    const next = new Date(start);
+    next.setDate(start.getDate() + (index * 14));
+    const iso = next.toISOString().slice(0, 10);
+    return { id: `paycheck-${iso}`, date: iso, amountCents: 0 };
+  });
+}
+
 export function createInitialState() {
   return {
     version: 1,
@@ -41,6 +54,7 @@ export function createInitialState() {
       targetCents: 0,
       savedCents: 0,
     },
+    paychecks: generateBiweeklyPaychecks(),
     bills: AUGUST_2026_BILLS.map((bill) => ({ ...bill })),
     characters: [{ ...DEFAULT_CHARACTER }],
     selectedCharacterId: DEFAULT_CHARACTER.id,
@@ -140,6 +154,70 @@ export function buildBankStops(allocations, savings) {
   }
   stops.push({ destinationId: 'exit', kind: 'exit', amountCents: 0 });
   return stops;
+}
+
+
+export function normalizePaychecks(paychecks = [], startDate = PAYCHECK_START_DATE, count = DEFAULT_PAYCHECK_COUNT) {
+  const generated = generateBiweeklyPaychecks(startDate, count);
+  return generated.map((base, index) => ({
+    ...base,
+    ...(paychecks[index] || {}),
+    id: (paychecks[index] && paychecks[index].id) || base.id,
+    date: (paychecks[index] && paychecks[index].date) || base.date,
+    amountCents: Math.max(0, Math.trunc((paychecks[index] && paychecks[index].amountCents) || 0)),
+  }));
+}
+
+export function assignBillToClosestPaycheck(bill, paychecks) {
+  const ordered = normalizePaychecks(paychecks).slice().sort((a, b) => a.date.localeCompare(b.date));
+  if (!ordered.length) return null;
+  if (!bill.dueDate) return ordered[0];
+  const due = new Date(`${bill.dueDate}T12:00:00`);
+  let best = ordered[0];
+  let bestDistance = Math.abs(dayDiff(due, new Date(`${best.date}T12:00:00`)));
+  for (const paycheck of ordered.slice(1)) {
+    const distance = Math.abs(dayDiff(due, new Date(`${paycheck.date}T12:00:00`)));
+    if (distance < bestDistance) {
+      best = paycheck;
+      bestDistance = distance;
+      continue;
+    }
+    if (distance === bestDistance && paycheck.date < best.date) {
+      best = paycheck;
+      bestDistance = distance;
+    }
+  }
+  return best;
+}
+
+export function routeBillsToPaychecks(bills, paychecks) {
+  const normalized = normalizePaychecks(paychecks);
+  const buckets = normalized.map((paycheck) => ({
+    ...paycheck,
+    bills: [],
+    assignedCents: 0,
+    remainingCents: paycheck.amountCents,
+    shortageCents: 0,
+  }));
+  const lookup = new Map(buckets.map((paycheck) => [paycheck.id, paycheck]));
+  const assignments = new Map();
+  for (const bill of bills) {
+    const paycheck = assignBillToClosestPaycheck(bill, normalized);
+    if (!paycheck) continue;
+    const bucket = lookup.get(paycheck.id);
+    const outstandingCents = Math.max(0, bill.amountCents - (bill.paidCents || 0));
+    const assignedBill = { ...bill, outstandingCents };
+    bucket.bills.push(assignedBill);
+    bucket.assignedCents += outstandingCents;
+    bucket.remainingCents = bucket.amountCents - bucket.assignedCents;
+    bucket.shortageCents = Math.max(0, -bucket.remainingCents);
+    assignments.set(bill.id, paycheck);
+  }
+  return { paychecks: buckets, assignments };
+}
+
+function dayDiff(a, b) {
+  return Math.round((a.getTime() - b.getTime()) / 86400000);
 }
 
 export function formatMoney(cents) {

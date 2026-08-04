@@ -1,9 +1,14 @@
-const themeHref = './reference-theme.css?v=4';
-if (!document.querySelector('link[data-reference-theme]')) {
+const themeFiles = [
+  ['./reference-theme.css?v=4', 'reference-theme'],
+  ['./paycheck-4k-theme.css?v=5', 'paycheck-4k-theme'],
+];
+
+for (const [href, key] of themeFiles) {
+  if (document.querySelector(`link[data-theme-key="${key}"]`)) continue;
   const theme = document.createElement('link');
   theme.rel = 'stylesheet';
-  theme.href = themeHref;
-  theme.dataset.referenceTheme = 'true';
+  theme.href = href;
+  theme.dataset.themeKey = key;
   document.head.append(theme);
 }
 
@@ -16,7 +21,7 @@ try {
 
   const parts = await Promise.all(responses.map((response) => response.text()));
   const engineUrl = new URL('./src/budgetEngine.js', window.location.href).href;
-  const source = parts.join('\n').replace("'./src/budgetEngine.js'", JSON.stringify(engineUrl));
+  const source = parts.join('').replace("'./src/budgetEngine.js'", JSON.stringify(engineUrl));
   const moduleUrl = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
   await import(moduleUrl);
   URL.revokeObjectURL(moduleUrl);
