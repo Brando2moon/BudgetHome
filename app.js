@@ -1,3 +1,12 @@
+const themeHref = './reference-theme.css?v=4';
+if (!document.querySelector('link[data-reference-theme]')) {
+  const theme = document.createElement('link');
+  theme.rel = 'stylesheet';
+  theme.href = themeHref;
+  theme.dataset.referenceTheme = 'true';
+  document.head.append(theme);
+}
+
 const partPaths = ['./app-source-1.txt', './app-source-2.txt', './app-source-3.txt'];
 
 try {
