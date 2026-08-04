@@ -10,6 +10,15 @@ export const AUGUST_2026_BILLS = Object.freeze([
   { id: 'subscriptions', name: 'Subscriptions', dueDate: null, dueLabel: 'Recurring', amountCents: 10_000, category: 'Subscriptions', paidCents: 0, recurring: true },
 ]);
 
+
+export const DEFAULT_SAVINGS_BOXES = Object.freeze([
+  { id: 'house', name: 'House', targetCents: 0, savedCents: 0 },
+  { id: 'emergency', name: 'Emergency', targetCents: 0, savedCents: 0 },
+  { id: 'megacon', name: 'MegaCon', targetCents: 0, savedCents: 0 },
+  { id: 'family-fun', name: 'Family Fun', targetCents: 0, savedCents: 0 },
+  { id: 'future-goal', name: 'Future Goal', targetCents: 0, savedCents: 0 },
+]);
+
 export const DEFAULT_CHARACTER = Object.freeze({
   id: 'camille',
   name: 'Camille',
@@ -26,7 +35,12 @@ export function createInitialState() {
     version: 1,
     asOfDate: '2026-08-04',
     availableCents: 0,
-    savings: { name: 'Savings Vault', targetCents: 0, savedCents: 0 },
+    savings: {
+      name: 'Savings Vault',
+      boxes: DEFAULT_SAVINGS_BOXES.map((box) => ({ ...box })),
+      targetCents: 0,
+      savedCents: 0,
+    },
     bills: AUGUST_2026_BILLS.map((bill) => ({ ...bill })),
     characters: [{ ...DEFAULT_CHARACTER }],
     selectedCharacterId: DEFAULT_CHARACTER.id,
@@ -87,6 +101,20 @@ export function summarizeBills(bills, asOfDate) {
     if (status === 'upcoming' || status === 'due-today' || status === 'recurring') summary.remainingCents += outstandingCents;
     return summary;
   }, { totalCents: 0, paidCents: 0, outstandingCents: 0, overdueCents: 0, remainingCents: 0 });
+}
+
+
+export function summarizeSavingsBoxes(boxes = []) {
+  const totals = boxes.reduce((summary, box) => {
+    summary.targetCents += Math.max(0, Math.trunc(box.targetCents || 0));
+    summary.savedCents += Math.max(0, Math.trunc(box.savedCents || 0));
+    return summary;
+  }, { targetCents: 0, savedCents: 0 });
+  const remainingCents = Math.max(totals.targetCents - totals.savedCents, 0);
+  const progress = totals.targetCents > 0
+    ? Math.min(100, Math.round((totals.savedCents / totals.targetCents) * 100))
+    : totals.savedCents > 0 ? 100 : 0;
+  return { ...totals, remainingCents, progress };
 }
 
 export function buildBankStops(allocations, savings) {

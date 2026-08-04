@@ -1,25 +1,35 @@
-    events.set(day, list);
-  }
-  const cells = [];
-  for (let blank = 0; blank < 6; blank++) cells.push('<div class="calendar-day empty"></div>');
-  for (let day = 1; day <= 31; day++) {
-    const dayEvents = events.get(day) || [];
-    cells.push(`<div class="calendar-day"><div class="calendar-date">${day}</div>${dayEvents.map((bill) => `<div class="calendar-event ${classifyBill(bill, state.asOfDate)}">${escapeHtml(bill.name)}<br>${formatMoney(bill.amountCents)}</div>`).join('')}</div>`);
-  }
-  $('#calendar-grid').innerHTML = cells.join('');
-  const sorted = [...state.bills].sort((a,b) => (a.dueDate || '9999').localeCompare(b.dueDate || '9999'));
-  $('#agenda-list').innerHTML = `<div class="section-heading"><h3>August agenda</h3><span class="badge">${state.bills.length} items</span></div>` + sorted.map((bill) => `<div class="agenda-item"><span>${categoryIcon(bill.category)}</span><div><strong>${escapeHtml(bill.name)}</strong><div>${bill.dueDate ? formatDate(bill.dueDate) : escapeHtml(bill.dueLabel || 'Recurring')}</div></div><strong>${formatMoney(bill.amountCents)}</strong></div>`).join('');
-}
 
 function renderSavings() {
-  const savings = state.savings;
-  $('#savings-name').value = savings.name || 'Savings Vault';
-  $('#savings-target').value = (savings.targetCents / 100).toFixed(2);
-  $('#savings-saved').value = (savings.savedCents / 100).toFixed(2);
-  $('#vault-name').textContent = savings.name || 'Savings Vault';
-  const progress = savings.targetCents > 0 ? Math.min(100, Math.round((savings.savedCents / savings.targetCents) * 100)) : 0;
-  $('#vault-progress-text').textContent = `${formatMoney(savings.savedCents)} saved of ${formatMoney(savings.targetCents)} — ${progress}% complete`;
-  $('#vault-progress').style.width = `${progress}%`;
+  const savings = normalizeSavings(state.savings);
+  state.savings = savings;
+  $('#savings-name').value = savings.name;
+  $('#vault-name').textContent = savings.name;
+  $('#vault-progress-text').textContent = `${formatMoney(savings.savedCents)} saved of ${formatMoney(savings.targetCents)} — ${savings.progress}% complete · ${formatMoney(savings.remainingCents)} remaining`;
+  $('#vault-progress').style.width = `${savings.progress}%`;
+  $('#vault-box-editor').innerHTML = renderVaultBoxEditor(savings.boxes);
+  $('#savings-vault-boxes').innerHTML = renderVaultBoxGrid(savings.boxes, false);
+}
+
+function renderVaultBoxEditor(boxes) {
+  return boxes.map((box, index) => `<fieldset class="vault-box-edit" data-vault-box-id="${escapeHtml(box.id)}">
+    <legend>Box ${String(index + 1).padStart(2, '0')}</legend>
+    <label>Name<input data-vault-box-name maxlength="24" value="${escapeHtml(box.name)}" /></label>
+    <label>Goal amount<input data-vault-box-target inputmode="decimal" value="${(box.targetCents / 100).toFixed(2)}" /></label>
+    <label>Actually saved<input data-vault-box-saved inputmode="decimal" value="${(box.savedCents / 100).toFixed(2)}" /></label>
+  </fieldset>`).join('');
+}
+
+function renderVaultBoxGrid(boxes, compact = false) {
+  return boxes.map((box, index) => {
+    const progress = box.targetCents > 0 ? Math.min(100, Math.round((box.savedCents / box.targetCents) * 100)) : box.savedCents > 0 ? 100 : 0;
+    return `<div class="safety-deposit-box ${compact ? 'compact' : ''}">
+      <div class="deposit-box-number">${String(index + 1).padStart(2, '0')}</div>
+      <div class="deposit-box-lock" aria-hidden="true"></div>
+      <strong>${escapeHtml(box.name)}</strong>
+      <span>${formatMoney(box.savedCents)}</span>
+      <small>${box.targetCents > 0 ? `${progress}% of ${formatMoney(box.targetCents)}` : 'Set a goal'}</small>
+    </div>`;
+  }).join('');
 }
 
 function renderCharacters() {
@@ -70,14 +80,11 @@ function playStop() {
   if (paused || document.hidden || !currentStops.length) return;
   const stop = currentStops[activeStopIndex];
   const room = $(`[data-room-id="${CSS.escape(stop.destinationId)}"]`);
-  $$('.bank-room.active').forEach((node) => node.classList.remove('active'));
+  $$('.bank-room.active, .bank-vault.active, .bank-door.active').forEach((node) => node.classList.remove('active'));
   if (room) room.classList.add('active');
   const character = $('#pixel-character');
   const bubble = $('#thought-bubble');
-  const positions = currentStops.length <= 1 ? 0 : activeStopIndex / (currentStops.length - 1);
-  const percent = Math.max(6, Math.min(87, Math.round(6 + positions * 81)));
-  character.style.left = `${percent}%`;
-  bubble.style.left = `min(calc(${percent}% + 54px), calc(100% - 290px))`;
+  moveCharacterToDestination(room, character, bubble);
   character.classList.toggle('walking', stop.kind !== 'entrance' && stop.kind !== 'exit');
   bubble.textContent = stopMessage(stop);
   $('#loop-status').textContent = `${selectedCharacter()?.name || 'Character'}: ${stopMessage(stop)}`;
@@ -92,6 +99,20 @@ function playStop() {
     }
     playStop();
   }, delay);
+}
+
+
+function moveCharacterToDestination(room, character, bubble) {
+  const scene = $('#bank-scene');
+  if (!scene || !room || !character || !bubble) return;
+  const sceneRect = scene.getBoundingClientRect();
+  const roomRect = room.getBoundingClientRect();
+  const x = Math.max(10, Math.min(sceneRect.width - 58, roomRect.left - sceneRect.left + roomRect.width / 2 - 24));
+  const y = Math.max(30, Math.min(sceneRect.height - 86, roomRect.top - sceneRect.top + roomRect.height / 2 - 38));
+  character.style.left = `${x}px`;
+  character.style.top = `${y}px`;
+  bubble.style.left = `${Math.max(8, Math.min(sceneRect.width - 290, x + 54))}px`;
+  bubble.style.top = `${Math.max(8, y - 28)}px`;
 }
 
 function stopMessage(stop) {
@@ -130,11 +151,5 @@ function bindEvents() {
 
   $('#savings-form').addEventListener('submit', (event) => {
     event.preventDefault();
-    const target = parseMoneyToCents($('#savings-target').value);
-    const saved = parseMoneyToCents($('#savings-saved').value);
-    if (target === null || saved === null) return toast('Enter valid savings amounts.');
-    state.savings = { name: $('#savings-name').value.trim() || 'Savings Vault', targetCents: target, savedCents: saved };
-    saveState(); render(); toast('Savings Vault updated.');
-  });
-
-  $('#character-form').addEventListener('input', () => applyCharacterStyle($('#character-preview'), formCharacter()));
+    const boxes = [...$('#vault-box-editor').querySelectorAll('[data-vault-box-id]')].map((row, index) => {
+      const targetCents = parseMoneyToCents(row.querySelector('[data-vault-box-target]').value);

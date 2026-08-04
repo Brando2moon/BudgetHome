@@ -8,6 +8,7 @@ import {
   createInitialState,
   formatMoney,
   summarizeBills,
+  summarizeSavingsBoxes,
 } from '../src/budgetEngine.js';
 
 test('seeds the exact August bills and totals $2,789.82', () => {
@@ -55,4 +56,24 @@ test('preserves the supplied order when two bills share a due date', () => {
   const result = allocateAvailableFunds(AUGUST_2026_BILLS, 0, '2026-08-04');
   const names = result.allocations.map((item) => item.name);
   assert.ok(names.indexOf('Insurance') < names.indexOf('Gas'));
+});
+
+test('creates the approved five safety-deposit boxes inside the savings vault', () => {
+  const state = createInitialState();
+  assert.deepEqual(state.savings.boxes.map((box) => box.name), [
+    'House', 'Emergency', 'MegaCon', 'Family Fun', 'Future Goal',
+  ]);
+});
+
+test('summarizes savings from the individual safety-deposit boxes', () => {
+  const summary = summarizeSavingsBoxes([
+    { name: 'House', targetCents: 100_000, savedCents: 25_000 },
+    { name: 'Emergency', targetCents: 50_000, savedCents: 10_000 },
+  ]);
+  assert.deepEqual(summary, {
+    targetCents: 150_000,
+    savedCents: 35_000,
+    remainingCents: 115_000,
+    progress: 23,
+  });
 });

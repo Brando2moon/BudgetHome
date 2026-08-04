@@ -35,5 +35,24 @@ test('registers an offline service worker', async () => {
   const source = await readAppSource();
   assert.match(source, /serviceWorker/);
   const worker = await read('service-worker.js');
-  assert.match(worker, /camilles-finance/);
+  assert.match(worker, /camilles-finance-v3/);
+});
+
+test('renders a recognizable bank floor plan with a dedicated vault wing', async () => {
+  const html = await read('index.html');
+  const styles = await read('styles.css');
+  assert.match(html, /class="bank-building"/);
+  assert.match(html, /id="bank-vault"/);
+  assert.match(html, /id="vault-boxes"/);
+  assert.match(html, /class="bank-corridor"/);
+  assert.match(styles, /\.bank-vault/);
+  assert.match(styles, /\.safety-deposit-box/);
+});
+
+test('provides editable safety-deposit boxes on the savings screen', async () => {
+  const html = await read('index.html');
+  const source = await readAppSource();
+  assert.match(html, /id="vault-box-editor"/);
+  assert.match(source, /renderVaultBoxEditor/);
+  assert.match(source, /data-vault-box-saved/);
 });

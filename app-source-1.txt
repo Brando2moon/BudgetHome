@@ -1,5 +1,6 @@
 import {
   AUGUST_2026_BILLS,
+  DEFAULT_SAVINGS_BOXES,
   allocateAvailableFunds,
   buildBankStops,
   classifyBill,
@@ -7,6 +8,7 @@ import {
   formatMoney,
   parseMoneyToCents,
   summarizeBills,
+  summarizeSavingsBoxes,
   toSlug,
 } from './src/budgetEngine.js';
 
@@ -25,17 +27,39 @@ let pendingStops = null;
 let currentAllocations = [];
 let toastTimer = null;
 
+function normalizeSavings(savings = {}) {
+  const hasBoxes = Array.isArray(savings.boxes) && savings.boxes.length > 0;
+  const boxes = DEFAULT_SAVINGS_BOXES.map((defaultBox, index) => {
+    const savedBox = hasBoxes ? savings.boxes[index] : null;
+    return {
+      ...defaultBox,
+      ...savedBox,
+      id: savedBox?.id || defaultBox.id,
+      name: savedBox?.name || defaultBox.name,
+      targetCents: Math.max(0, Math.trunc(savedBox?.targetCents || 0)),
+      savedCents: Math.max(0, Math.trunc(savedBox?.savedCents || 0)),
+    };
+  });
+  if (!hasBoxes && (savings.targetCents > 0 || savings.savedCents > 0)) {
+    boxes[0].targetCents = Math.max(0, Math.trunc(savings.targetCents || 0));
+    boxes[0].savedCents = Math.max(0, Math.trunc(savings.savedCents || 0));
+  }
+  const summary = summarizeSavingsBoxes(boxes);
+  return { name: savings.name || 'Savings Vault', boxes, ...summary };
+}
+
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!saved || !Array.isArray(saved.bills) || !Array.isArray(saved.characters)) return createInitialState();
-    return { ...createInitialState(), ...saved };
+    return { ...createInitialState(), ...saved, savings: normalizeSavings(saved.savings) };
   } catch {
     return createInitialState();
   }
 }
 
 function saveState(message = 'Saved locally') {
+  state.savings = normalizeSavings(state.savings);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   $('#save-indicator').textContent = message;
   queuePlan();
@@ -81,6 +105,7 @@ function renderFundingControls() {
 function renderBank() {
   const result = allocateAvailableFunds(state.bills, state.availableCents, state.asOfDate);
   currentAllocations = result.allocations;
+  state.savings = normalizeSavings(state.savings);
   const selected = selectedCharacter();
   applyCharacterStyle($('#pixel-character'), selected);
 
@@ -88,7 +113,7 @@ function renderBank() {
     const bill = state.bills.find((item) => item.id === allocation.billId);
     const status = allocation.status;
     const due = bill?.dueDate ? formatDate(bill.dueDate) : bill?.dueLabel || 'Recurring';
-    return `<article class="bank-room ${status}" data-room-id="${escapeHtml(allocation.billId)}">
+    return `<article class="bank-room bank-department ${status}" data-room-id="${escapeHtml(allocation.billId)}">
       <div class="room-header"><span class="room-name">${escapeHtml(allocation.name)}</span><span>${categoryIcon(bill?.category)}</span></div>
       <div class="room-screen">
         <div class="room-amount">${formatMoney(allocation.outstandingCents)}</div>
@@ -97,7 +122,8 @@ function renderBank() {
         <span class="status-chip ${status}">${statusLabel(status)}</span>
       </div>
     </article>`;
-  }).join('') + renderVaultRoom();
+  }).join('');
+  renderVaultRoom();
 
   $('#funding-route').innerHTML = currentAllocations.map((allocation, index) => `<div class="route-item">
     <span class="route-index">${index + 1}</span>
@@ -110,12 +136,10 @@ function renderBank() {
 }
 
 function renderVaultRoom() {
-  const savings = state.savings;
-  const progress = savings.targetCents > 0 ? Math.min(100, Math.round((savings.savedCents / savings.targetCents) * 100)) : 0;
-  return `<article class="bank-room funded" data-room-id="savings-vault">
-    <div class="room-header"><span class="room-name">Savings Vault</span><span>🔐</span></div>
-    <div class="room-screen"><div class="room-amount">${formatMoney(savings.savedCents)}</div><div>Goal: ${formatMoney(savings.targetCents)}</div><div>${progress}% complete</div><span class="status-chip funded">Vault</span></div>
-  </article>`;
+  const savings = normalizeSavings(state.savings);
+  $('#bank-vault-total').textContent = `${formatMoney(savings.savedCents)} saved · ${savings.progress}%`;
+  $('#vault-boxes').innerHTML = renderVaultBoxGrid(savings.boxes, true);
+  $('#bank-vault').classList.toggle('funded', savings.targetCents > 0 && savings.savedCents >= savings.targetCents);
 }
 
 function renderBills() {
@@ -138,3 +162,15 @@ function renderCalendar() {
     const day = Number(bill.dueDate.slice(-2));
     const list = events.get(day) || [];
     list.push(bill);
+    events.set(day, list);
+  }
+  const cells = [];
+  for (let blank = 0; blank < 6; blank++) cells.push('<div class="calendar-day empty"></div>');
+  for (let day = 1; day <= 31; day++) {
+    const dayEvents = events.get(day) || [];
+    cells.push(`<div class="calendar-day"><div class="calendar-date">${day}</div>${dayEvents.map((bill) => `<div class="calendar-event ${classifyBill(bill, state.asOfDate)}">${escapeHtml(bill.name)}<br>${formatMoney(bill.amountCents)}</div>`).join('')}</div>`);
+  }
+  $('#calendar-grid').innerHTML = cells.join('');
+  const sorted = [...state.bills].sort((a,b) => (a.dueDate || '9999').localeCompare(b.dueDate || '9999'));
+  $('#agenda-list').innerHTML = `<div class="section-heading"><h3>August agenda</h3><span class="badge">${state.bills.length} items</span></div>` + sorted.map((bill) => `<div class="agenda-item"><span>${categoryIcon(bill.category)}</span><div><strong>${escapeHtml(bill.name)}</strong><div>${bill.dueDate ? formatDate(bill.dueDate) : escapeHtml(bill.dueLabel || 'Recurring')}</div></div><strong>${formatMoney(bill.amountCents)}</strong></div>`).join('');
+}
