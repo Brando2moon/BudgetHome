@@ -1,0 +1,9 @@
+{
+  "name": "Camille's Finance Bank",
+  "short_name": "Finance Bank",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#180526",
+  "theme_color": "#2b0a4d",
+  "description": "A living pixel-bank budget dashboard for household bills and savings."
+}

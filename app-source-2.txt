@@ -1,0 +1,140 @@
+    events.set(day, list);
+  }
+  const cells = [];
+  for (let blank = 0; blank < 6; blank++) cells.push('<div class="calendar-day empty"></div>');
+  for (let day = 1; day <= 31; day++) {
+    const dayEvents = events.get(day) || [];
+    cells.push(`<div class="calendar-day"><div class="calendar-date">${day}</div>${dayEvents.map((bill) => `<div class="calendar-event ${classifyBill(bill, state.asOfDate)}">${escapeHtml(bill.name)}<br>${formatMoney(bill.amountCents)}</div>`).join('')}</div>`);
+  }
+  $('#calendar-grid').innerHTML = cells.join('');
+  const sorted = [...state.bills].sort((a,b) => (a.dueDate || '9999').localeCompare(b.dueDate || '9999'));
+  $('#agenda-list').innerHTML = `<div class="section-heading"><h3>August agenda</h3><span class="badge">${state.bills.length} items</span></div>` + sorted.map((bill) => `<div class="agenda-item"><span>${categoryIcon(bill.category)}</span><div><strong>${escapeHtml(bill.name)}</strong><div>${bill.dueDate ? formatDate(bill.dueDate) : escapeHtml(bill.dueLabel || 'Recurring')}</div></div><strong>${formatMoney(bill.amountCents)}</strong></div>`).join('');
+}
+
+function renderSavings() {
+  const savings = state.savings;
+  $('#savings-name').value = savings.name || 'Savings Vault';
+  $('#savings-target').value = (savings.targetCents / 100).toFixed(2);
+  $('#savings-saved').value = (savings.savedCents / 100).toFixed(2);
+  $('#vault-name').textContent = savings.name || 'Savings Vault';
+  const progress = savings.targetCents > 0 ? Math.min(100, Math.round((savings.savedCents / savings.targetCents) * 100)) : 0;
+  $('#vault-progress-text').textContent = `${formatMoney(savings.savedCents)} saved of ${formatMoney(savings.targetCents)} — ${progress}% complete`;
+  $('#vault-progress').style.width = `${progress}%`;
+}
+
+function renderCharacters() {
+  const selected = selectedCharacter();
+  $('#character-list').innerHTML = state.characters.map((character) => `<article class="character-card ${character.id === state.selectedCharacterId ? 'selected' : ''}"><strong>${escapeHtml(character.name)}</strong><div>${escapeHtml(character.hairstyle)} · ${escapeHtml(character.bodyStyle)}</div><div class="row-actions"><button type="button" class="small-button" data-select-character="${escapeHtml(character.id)}">Use</button><button type="button" class="small-button" data-edit-character="${escapeHtml(character.id)}">Edit</button>${state.characters.length > 1 ? `<button type="button" class="small-button" data-delete-character="${escapeHtml(character.id)}">Delete</button>` : ''}</div></article>`).join('');
+  applyCharacterStyle($('#character-preview'), formCharacter() || selected);
+}
+
+function selectedCharacter() {
+  return state.characters.find((character) => character.id === state.selectedCharacterId) || state.characters[0];
+}
+
+function applyCharacterStyle(node, character) {
+  if (!node || !character) return;
+  node.style.setProperty('--skin', SKIN_TONES[character.skinTone] || SKIN_TONES.deep);
+  node.style.setProperty('--hair', character.hairColor || '#1c120d');
+  node.style.setProperty('--shirt', character.shirtColor || '#7c3aed');
+  node.style.setProperty('--pants', character.pantsColor || '#2e1065');
+  node.dataset.hairStyle = character.hairstyle || 'locs';
+  node.dataset.bodyStyle = character.bodyStyle || 'average';
+}
+
+function formCharacter() {
+  if (!$('#character-name')) return null;
+  return {
+    id: $('#character-id').value || 'preview', name: $('#character-name').value || 'Preview',
+    skinTone: $('#character-skin').value, hairstyle: $('#character-hair-style').value,
+    bodyStyle: $('#character-body-style').value, hairColor: $('#character-hair-color').value,
+    shirtColor: $('#character-shirt-color').value, pantsColor: $('#character-pants-color').value,
+  };
+}
+
+function queuePlan() {
+  const allocations = allocateAvailableFunds(state.bills, state.availableCents, state.asOfDate).allocations;
+  const next = buildBankStops(allocations, state.savings);
+  if (currentStops.length && activeStopIndex > 0) pendingStops = next;
+  else { currentStops = next; activeStopIndex = 0; }
+}
+
+function startLoop() {
+  clearTimeout(loopTimer);
+  if (!currentStops.length) queuePlan();
+  if (paused || document.hidden) return;
+  playStop();
+}
+
+function playStop() {
+  if (paused || document.hidden || !currentStops.length) return;
+  const stop = currentStops[activeStopIndex];
+  const room = $(`[data-room-id="${CSS.escape(stop.destinationId)}"]`);
+  $$('.bank-room.active').forEach((node) => node.classList.remove('active'));
+  if (room) room.classList.add('active');
+  const character = $('#pixel-character');
+  const bubble = $('#thought-bubble');
+  const positions = currentStops.length <= 1 ? 0 : activeStopIndex / (currentStops.length - 1);
+  const percent = Math.max(6, Math.min(87, Math.round(6 + positions * 81)));
+  character.style.left = `${percent}%`;
+  bubble.style.left = `min(calc(${percent}% + 54px), calc(100% - 290px))`;
+  character.classList.toggle('walking', stop.kind !== 'entrance' && stop.kind !== 'exit');
+  bubble.textContent = stopMessage(stop);
+  $('#loop-status').textContent = `${selectedCharacter()?.name || 'Character'}: ${stopMessage(stop)}`;
+  $('#route-counter').textContent = `Stop ${activeStopIndex + 1} of ${currentStops.length}`;
+
+  const delay = Math.max(550, 1700 / (state.animationSpeed || 1));
+  loopTimer = setTimeout(() => {
+    activeStopIndex += 1;
+    if (activeStopIndex >= currentStops.length) {
+      activeStopIndex = 0;
+      if (pendingStops) { currentStops = pendingStops; pendingStops = null; renderBank(); }
+    }
+    playStop();
+  }, delay);
+}
+
+function stopMessage(stop) {
+  if (stop.kind === 'entrance') return 'Entering the bank with today’s plan.';
+  if (stop.kind === 'exit') return 'Route complete. Returning to the entrance.';
+  if (stop.kind === 'savings') return `Checking the Savings Vault: ${formatMoney(stop.amountCents)} saved.`;
+  if (stop.amountCents > 0) return `Depositing ${formatMoney(stop.amountCents)} into ${stop.label}.`;
+  return `${stop.label} still needs funding.`;
+}
+
+function bindEvents() {
+  $$('.nav-button').forEach((button) => button.addEventListener('click', () => showView(button.dataset.view)));
+  $('#apply-funding').addEventListener('click', () => {
+    const cents = parseMoneyToCents($('#available-funds').value);
+    if (cents === null) return toast('Enter a valid available-funds amount.');
+    state.availableCents = cents;
+    state.asOfDate = $('#as-of-date').value || state.asOfDate;
+    state.selectedCharacterId = $('#active-character').value;
+    saveState('Deposit plan saved'); render(); toast('New funding plan queued for the next loop.');
+  });
+  $('#pause-animation').addEventListener('click', togglePause);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && !paused) startLoop(); else clearTimeout(loopTimer); });
+  window.addEventListener('keydown', (event) => {
+    const tag = event.target?.tagName;
+    if (event.key === 'F8' && !['INPUT','SELECT','TEXTAREA'].includes(tag)) showView(activeView === 'calendar' ? 'bank' : 'calendar');
+  });
+
+  $('#bill-form').addEventListener('submit', saveBillFromForm);
+  $('#cancel-bill-edit').addEventListener('click', clearBillForm);
+  $('#seed-bills').addEventListener('click', () => {
+    if (!confirm('Restore the original August bill list?')) return;
+    state.bills = AUGUST_2026_BILLS.map((bill) => ({ ...bill }));
+    saveState(); render(); toast('August bill list restored.');
+  });
+  $('#bill-table-body').addEventListener('click', handleBillTableClick);
+
+  $('#savings-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const target = parseMoneyToCents($('#savings-target').value);
+    const saved = parseMoneyToCents($('#savings-saved').value);
+    if (target === null || saved === null) return toast('Enter valid savings amounts.');
+    state.savings = { name: $('#savings-name').value.trim() || 'Savings Vault', targetCents: target, savedCents: saved };
+    saveState(); render(); toast('Savings Vault updated.');
+  });
+
+  $('#character-form').addEventListener('input', () => applyCharacterStyle($('#character-preview'), formCharacter()));

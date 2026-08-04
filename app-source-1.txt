@@ -1,0 +1,140 @@
+import {
+  AUGUST_2026_BILLS,
+  allocateAvailableFunds,
+  buildBankStops,
+  classifyBill,
+  createInitialState,
+  formatMoney,
+  parseMoneyToCents,
+  summarizeBills,
+  toSlug,
+} from './src/budgetEngine.js';
+
+const STORAGE_KEY = 'camilles-finance-bank-v1';
+const SKIN_TONES = { deep: '#3b2118', dark: '#563122', brown: '#75462f', warm: '#925f40' };
+const $ = (selector, root = document) => root.querySelector(selector);
+const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+
+let state = loadState();
+let activeView = 'bank';
+let loopTimer = null;
+let paused = false;
+let activeStopIndex = 0;
+let currentStops = [];
+let pendingStops = null;
+let currentAllocations = [];
+let toastTimer = null;
+
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (!saved || !Array.isArray(saved.bills) || !Array.isArray(saved.characters)) return createInitialState();
+    return { ...createInitialState(), ...saved };
+  } catch {
+    return createInitialState();
+  }
+}
+
+function saveState(message = 'Saved locally') {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  $('#save-indicator').textContent = message;
+  queuePlan();
+}
+
+function toast(message) {
+  const node = $('#toast');
+  node.textContent = message;
+  node.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => node.classList.remove('show'), 2200);
+}
+
+function render() {
+  renderSummary();
+  renderFundingControls();
+  renderBills();
+  renderCalendar();
+  renderSavings();
+  renderCharacters();
+  renderBank();
+  $('#animation-speed').value = String(state.animationSpeed || 1);
+}
+
+function renderSummary() {
+  const summary = summarizeBills(state.bills, state.asOfDate);
+  const result = allocateAvailableFunds(state.bills, state.availableCents, state.asOfDate);
+  const availableAfterBills = result.remainingCents;
+  $('#summary-grid').innerHTML = [
+    ['August bills', summary.totalCents, 'total'],
+    ['Past due', summary.overdueCents, 'overdue'],
+    ['Still outstanding', summary.outstandingCents, 'remaining'],
+    ['Safe after plan', availableAfterBills, 'available'],
+  ].map(([label, cents, kind]) => `<article class="summary-card ${kind}"><span>${label}</span><strong>${formatMoney(cents)}</strong></article>`).join('');
+}
+
+function renderFundingControls() {
+  $('#available-funds').value = (state.availableCents / 100).toFixed(2);
+  $('#as-of-date').value = state.asOfDate;
+  $('#active-character').innerHTML = state.characters.map((character) => `<option value="${escapeHtml(character.id)}" ${character.id === state.selectedCharacterId ? 'selected' : ''}>${escapeHtml(character.name)}</option>`).join('');
+}
+
+function renderBank() {
+  const result = allocateAvailableFunds(state.bills, state.availableCents, state.asOfDate);
+  currentAllocations = result.allocations;
+  const selected = selectedCharacter();
+  applyCharacterStyle($('#pixel-character'), selected);
+
+  $('#bank-rooms').innerHTML = currentAllocations.map((allocation) => {
+    const bill = state.bills.find((item) => item.id === allocation.billId);
+    const status = allocation.status;
+    const due = bill?.dueDate ? formatDate(bill.dueDate) : bill?.dueLabel || 'Recurring';
+    return `<article class="bank-room ${status}" data-room-id="${escapeHtml(allocation.billId)}">
+      <div class="room-header"><span class="room-name">${escapeHtml(allocation.name)}</span><span>${categoryIcon(bill?.category)}</span></div>
+      <div class="room-screen">
+        <div class="room-amount">${formatMoney(allocation.outstandingCents)}</div>
+        <div>Due: ${escapeHtml(due)}</div>
+        <div>Assigned: ${formatMoney(allocation.fundedCents)}</div>
+        <span class="status-chip ${status}">${statusLabel(status)}</span>
+      </div>
+    </article>`;
+  }).join('') + renderVaultRoom();
+
+  $('#funding-route').innerHTML = currentAllocations.map((allocation, index) => `<div class="route-item">
+    <span class="route-index">${index + 1}</span>
+    <div><strong>${escapeHtml(allocation.name)}</strong><div>${formatMoney(allocation.fundedCents)} assigned of ${formatMoney(allocation.outstandingCents)}</div></div>
+    <span class="status-chip ${allocation.status}">${statusLabel(allocation.status)}</span>
+  </div>`).join('');
+
+  const attention = currentAllocations.filter((item) => ['overdue', 'partial', 'upcoming', 'due-today', 'recurring'].includes(item.status));
+  $('#attention-list').innerHTML = attention.length ? attention.map((item) => `<div class="attention-item"><span>⚠</span><div><strong>${escapeHtml(item.name)}</strong><div>${item.status === 'overdue' ? 'Past due' : 'Needs funding'}: ${formatMoney(item.outstandingCents - item.fundedCents)}</div></div><span>${item.dueDate ? formatDate(item.dueDate) : 'Recurring'}</span></div>`).join('') : '<p>Every bill is fully covered.</p>';
+}
+
+function renderVaultRoom() {
+  const savings = state.savings;
+  const progress = savings.targetCents > 0 ? Math.min(100, Math.round((savings.savedCents / savings.targetCents) * 100)) : 0;
+  return `<article class="bank-room funded" data-room-id="savings-vault">
+    <div class="room-header"><span class="room-name">Savings Vault</span><span>🔐</span></div>
+    <div class="room-screen"><div class="room-amount">${formatMoney(savings.savedCents)}</div><div>Goal: ${formatMoney(savings.targetCents)}</div><div>${progress}% complete</div><span class="status-chip funded">Vault</span></div>
+  </article>`;
+}
+
+function renderBills() {
+  $('#bill-count').textContent = `${state.bills.length} bills`;
+  $('#bill-table-body').innerHTML = state.bills.map((bill) => {
+    const status = classifyBill(bill, state.asOfDate);
+    return `<tr>
+      <td><strong>${escapeHtml(bill.name)}</strong><br><small>${escapeHtml(bill.category || 'Other')}</small></td>
+      <td>${bill.dueDate ? formatDate(bill.dueDate) : escapeHtml(bill.dueLabel || 'Recurring')}</td>
+      <td>${formatMoney(bill.amountCents)}</td><td>${formatMoney(bill.paidCents || 0)}</td>
+      <td><span class="status-chip ${status}">${statusLabel(status)}</span></td>
+      <td><div class="row-actions"><button class="small-button" data-edit-bill="${escapeHtml(bill.id)}" type="button">Edit</button><button class="small-button" data-delete-bill="${escapeHtml(bill.id)}" type="button">Delete</button></div></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderCalendar() {
+  const events = new Map();
+  for (const bill of state.bills.filter((item) => item.dueDate?.startsWith('2026-08'))) {
+    const day = Number(bill.dueDate.slice(-2));
+    const list = events.get(day) || [];
+    list.push(bill);

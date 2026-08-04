@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2b0a4d" />
+  <title>Camille's Finance Bank</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">HOUSEHOLD MONEY COMMAND CENTER</p>
+        <h1>Camille's Finance Bank</h1>
+      </div>
+      <div class="topbar-actions">
+        <span id="save-indicator" class="save-indicator" aria-live="polite">Saved locally</span>
+        <button id="pause-animation" class="button ghost" type="button" aria-pressed="false">Pause bank</button>
+      </div>
+    </header>
+
+    <nav class="main-nav" aria-label="Main navigation">
+      <button class="nav-button active" data-view="bank" type="button">🏦 Bank</button>
+      <button class="nav-button" data-view="bills" type="button">🧾 Bills</button>
+      <button class="nav-button" data-view="calendar" type="button">📅 Calendar</button>
+      <button class="nav-button" data-view="savings" type="button">🔐 Savings</button>
+      <button class="nav-button" data-view="characters" type="button">🧍 Characters</button>
+      <button class="nav-button" data-view="settings" type="button">⚙ Settings</button>
+    </nav>
+
+    <main>
+      <section class="view active" data-view="bank" aria-labelledby="bank-heading">
+        <div class="summary-grid" id="summary-grid"></div>
+
+        <div class="control-strip panel">
+          <label>
+            Funds available to assign
+            <span class="money-input"><span>$</span><input id="available-funds" inputmode="decimal" value="0.00" aria-label="Funds available to assign" /></span>
+          </label>
+          <label>
+            Plan as of
+            <input id="as-of-date" type="date" value="2026-08-04" />
+          </label>
+          <label>
+            Character
+            <select id="active-character"></select>
+          </label>
+          <button id="apply-funding" class="button gold" type="button">Run deposit plan</button>
+        </div>
+
+        <div class="bank-frame panel">
+          <div class="bank-marquee">
+            <span>✦</span>
+            <div>
+              <p>WELCOME TO</p>
+              <h2 id="bank-heading">CAMILLE'S FAMILY BANK</h2>
+            </div>
+            <span>✦</span>
+          </div>
+          <div class="bank-status-bar">
+            <span id="loop-status">Preparing the bank route…</span>
+            <span id="route-counter">Stop 0 of 0</span>
+          </div>
+          <div id="bank-scene" class="bank-scene" aria-label="Animated budget bank floor plan">
+            <div id="bank-rooms" class="bank-rooms"></div>
+            <div class="bank-lobby">
+              <div class="entrance-label">ENTRANCE</div>
+              <div id="pixel-character" class="pixel-character" aria-label="Animated family character">
+                <span class="pixel hair"></span>
+                <span class="pixel head"></span>
+                <span class="pixel body"></span>
+                <span class="pixel left-arm"></span>
+                <span class="pixel right-arm"></span>
+                <span class="pixel left-leg"></span>
+                <span class="pixel right-leg"></span>
+              </div>
+              <div id="thought-bubble" class="thought-bubble" aria-live="polite">Ready to make a deposit.</div>
+              <div class="exit-label">EXIT</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <article class="panel">
+            <div class="section-heading"><h3>Funding route</h3><span class="badge">Live loop</span></div>
+            <div id="funding-route" class="route-list"></div>
+          </article>
+          <article class="panel">
+            <div class="section-heading"><h3>Attention desk</h3><span class="badge warning">Needs action</span></div>
+            <div id="attention-list" class="attention-list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" data-view="bills" aria-labelledby="bills-heading">
+        <div class="page-heading">
+          <div><p class="eyebrow">EDIT THE BANK DEPARTMENTS</p><h2 id="bills-heading">Bills</h2></div>
+          <button id="seed-bills" class="button ghost" type="button">Restore August bills</button>
+        </div>
+        <div class="editor-layout">
+          <form id="bill-form" class="panel form-card">
+            <input id="bill-id" type="hidden" />
+            <h3>Add or edit a bill</h3>
+            <label>Bill name<input id="bill-name" required maxlength="40" /></label>
+            <label>Amount<input id="bill-amount" required inputmode="decimal" placeholder="0.00" /></label>
+            <label>Due date<input id="bill-due-date" type="date" /></label>
+            <label>Due label<input id="bill-due-label" placeholder="Example: Recurring" /></label>
+            <label>Category
+              <select id="bill-category">
+                <option>Housing</option><option>Transportation</option><option>Utilities</option>
+                <option>Insurance</option><option>Subscriptions</option><option>Personal</option><option>Other</option>
+              </select>
+            </label>
+            <label>Amount already paid<input id="bill-paid" inputmode="decimal" value="0.00" /></label>
+            <label class="checkbox-row"><input id="bill-recurring" type="checkbox" checked /> Repeats monthly</label>
+            <div class="form-actions">
+              <button class="button gold" type="submit">Save bill</button>
+              <button id="cancel-bill-edit" class="button ghost" type="button">Clear</button>
+            </div>
+          </form>
+          <div class="panel table-card">
+            <div class="section-heading"><h3>August bill register</h3><span id="bill-count" class="badge"></span></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Bill</th><th>Due</th><th>Amount</th><th>Paid</th><th>Status</th><th></th></tr></thead>
+                <tbody id="bill-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" data-view="calendar" aria-labelledby="calendar-heading">
+        <div class="page-heading"><div><p class="eyebrow">AUGUST 2026</p><h2 id="calendar-heading">Due-date calendar</h2></div></div>
+        <div id="calendar-grid" class="calendar-grid panel"></div>
+        <div id="agenda-list" class="agenda-list panel"></div>
+      </section>
+
+      <section class="view" data-view="savings" aria-labelledby="savings-heading">
+        <div class="page-heading"><div><p class="eyebrow">THE VAULT</p><h2 id="savings-heading">Savings</h2></div></div>
+        <div class="savings-layout">
+          <form id="savings-form" class="panel form-card">
+            <h3>Set your savings vault</h3>
+            <label>Goal name<input id="savings-name" maxlength="40" /></label>
+            <label>Goal amount<input id="savings-target" inputmode="decimal" /></label>
+            <label>Actually saved<input id="savings-saved" inputmode="decimal" /></label>
+            <button class="button gold" type="submit">Update vault</button>
+          </form>
+          <div class="panel vault-card">
+            <div class="vault-door"><div class="vault-wheel">✦</div></div>
+            <div>
+              <p class="eyebrow">CURRENT VAULT</p>
+              <h3 id="vault-name">Savings Vault</h3>
+              <p id="vault-progress-text"></p>
+              <div class="progress-track"><div id="vault-progress" class="progress-fill"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" data-view="characters" aria-labelledby="characters-heading">
+        <div class="page-heading"><div><p class="eyebrow">PIXEL FAMILY TEAM</p><h2 id="characters-heading">Characters</h2></div></div>
+        <div class="editor-layout">
+          <form id="character-form" class="panel form-card">
+            <input id="character-id" type="hidden" />
+            <h3>Customize a bank character</h3>
+            <label>Name<input id="character-name" required maxlength="30" /></label>
+            <label>Skin tone
+              <select id="character-skin">
+                <option value="deep">Deep</option><option value="dark">Dark</option>
+                <option value="brown">Brown</option><option value="warm">Warm brown</option>
+              </select>
+            </label>
+            <label>Hairstyle
+              <select id="character-hair-style">
+                <option value="fade">Fade</option><option value="waves">Waves</option><option value="locs">Locs</option>
+                <option value="braids">Braids</option><option value="afro">Afro</option><option value="curls">Curls</option><option value="bun">Bun</option>
+              </select>
+            </label>
+            <label>Body style
+              <select id="character-body-style"><option value="slim">Slim</option><option value="average">Average</option><option value="broad">Broad</option><option value="curvy">Curvy</option></select>
+            </label>
+            <div class="color-grid">
+              <label>Hair color<input id="character-hair-color" type="color" value="#1c120d" /></label>
+              <label>Shirt color<input id="character-shirt-color" type="color" value="#7c3aed" /></label>
+              <label>Pants color<input id="character-pants-color" type="color" value="#2e1065" /></label>
+            </div>
+            <div class="form-actions">
+              <button class="button gold" type="submit">Save character</button>
+              <button id="new-character" class="button ghost" type="button">New</button>
+            </div>
+          </form>
+          <div class="panel character-studio">
+            <div class="studio-floor">
+              <div id="character-preview" class="pixel-character preview" aria-label="Character preview">
+                <span class="pixel hair"></span><span class="pixel head"></span><span class="pixel body"></span>
+                <span class="pixel left-arm"></span><span class="pixel right-arm"></span>
+                <span class="pixel left-leg"></span><span class="pixel right-leg"></span>
+              </div>
+            </div>
+            <div id="character-list" class="character-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" data-view="settings" aria-labelledby="settings-heading">
+        <div class="page-heading"><div><p class="eyebrow">APP CONTROLS</p><h2 id="settings-heading">Settings</h2></div></div>
+        <div class="settings-grid">
+          <article class="panel form-card">
+            <h3>Animation</h3>
+            <label>Loop speed
+              <select id="animation-speed"><option value="0.6">Relaxed</option><option value="1" selected>Normal</option><option value="1.5">Fast</option><option value="2">Very fast</option></select>
+            </label>
+            <p class="help-text">The character completes the current route, returns to the entrance, and then loads your newest saved changes.</p>
+          </article>
+          <article class="panel form-card">
+            <h3>Backup</h3>
+            <button id="export-data" class="button ghost" type="button">Export budget backup</button>
+            <label class="file-label">Import backup<input id="import-data" type="file" accept="application/json" /></label>
+            <button id="reset-data" class="button danger" type="button">Reset all local data</button>
+            <p class="help-text">This version stores your information only in this browser. Export a backup before clearing browser data.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
