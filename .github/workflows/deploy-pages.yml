@@ -18,15 +18,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Verify application
-        run: npm run verify
-
+      - run: npm run verify
   deploy:
     environment:
       name: github-pages
@@ -34,21 +30,17 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
       - name: Prepare static site
         run: |
           mkdir -p _site/src _site/assets
-          cp index.html styles.css app.js service-worker.js manifest.webmanifest _site/
+          cp index.html styles.css reference-theme.css paycheck-4k-theme.css app.js app-source-*.txt service-worker.js manifest.webmanifest _site/
           cp src/budgetEngine.js _site/src/
           cp assets/approved-bank-reference-4k-*.txt _site/assets/
           touch _site/.nojekyll
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4

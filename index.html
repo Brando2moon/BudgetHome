@@ -65,6 +65,7 @@
           </div>
           <div id="bank-scene" class="bank-scene" aria-label="Animated top-down budget bank floor plan">
             <div class="bank-building">
+              <img id="bank-reference-art" class="bank-reference-art" src="" data-bank-art-parts="20" alt="" aria-hidden="true" />
               <div class="bank-roofline" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
               <div class="bank-floor">
                 <div id="bank-rooms" class="bank-rooms"></div>
@@ -85,6 +86,10 @@
             <div id="pixel-character" class="pixel-character" aria-label="Animated family character">
               <span class="pixel hair"></span>
               <span class="pixel head"></span>
+              <span class="pixel eye left-eye"></span>
+              <span class="pixel eye right-eye"></span>
+              <span class="pixel nose"></span>
+              <span class="pixel mouth"></span>
               <span class="pixel body"></span>
               <span class="pixel left-arm"></span>
               <span class="pixel right-arm"></span>
@@ -95,7 +100,7 @@
           </div>
         </div>
 
-        <div class="dashboard-grid">
+        <div class="dashboard-grid bank-dashboard-grid">
           <article class="panel">
             <div class="section-heading"><h3>Funding route</h3><span class="badge">Live loop</span></div>
             <div id="funding-route" class="route-list"></div>
@@ -103,6 +108,13 @@
           <article class="panel">
             <div class="section-heading"><h3>Attention desk</h3><span class="badge warning">Needs action</span></div>
             <div id="attention-list" class="attention-list"></div>
+          </article>
+          <article class="panel paycheck-planner-panel">
+            <div class="section-heading"><h3>Paycheck planner</h3><span class="badge">Biweekly</span></div>
+            <p class="help-text">Paychecks repeat every 14 days starting Friday, Aug 7, 2026. Bills are assigned to the closest paycheck.</p>
+            <div id="paycheck-editor" class="paycheck-editor"></div>
+            <button id="save-paychecks" class="button gold" type="button">Save paycheck amounts</button>
+            <div id="paycheck-breakdown" class="paycheck-breakdown"></div>
           </article>
         </div>
       </section>
@@ -209,8 +221,10 @@
           <div class="panel character-studio">
             <div class="studio-floor">
               <div id="character-preview" class="pixel-character preview" aria-label="Character preview">
-                <span class="pixel hair"></span><span class="pixel head"></span><span class="pixel body"></span>
-                <span class="pixel left-arm"></span><span class="pixel right-arm"></span>
+                <span class="pixel hair"></span><span class="pixel head"></span>
+                <span class="pixel eye left-eye"></span><span class="pixel eye right-eye"></span>
+                <span class="pixel nose"></span><span class="pixel mouth"></span>
+                <span class="pixel body"></span><span class="pixel left-arm"></span><span class="pixel right-arm"></span>
                 <span class="pixel left-leg"></span><span class="pixel right-leg"></span>
               </div>
             </div>

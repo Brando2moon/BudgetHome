@@ -1,3 +1,26 @@
+      <td><div class="row-actions"><button class="small-button" data-edit-bill="${escapeHtml(bill.id)}" type="button">Edit</button><button class="small-button" data-delete-bill="${escapeHtml(bill.id)}" type="button">Delete</button></div></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderCalendar() {
+  const events = new Map();
+  for (const bill of state.bills.filter((item) => item.dueDate?.startsWith('2026-08'))) {
+    const day = Number(bill.dueDate.slice(-2));
+    const list = events.get(day) || [];
+    list.push(bill);
+    events.set(day, list);
+  }
+  const cells = [];
+  for (let blank = 0; blank < 6; blank++) cells.push('<div class="calendar-day empty"></div>');
+  for (let day = 1; day <= 31; day++) {
+    const dayEvents = events.get(day) || [];
+    cells.push(`<div class="calendar-day"><div class="calendar-date">${day}</div>${dayEvents.map((bill) => `<div class="calendar-event ${classifyBill(bill, state.asOfDate)}">${escapeHtml(bill.name)}<br>${formatMoney(bill.amountCents)}</div>`).join('')}</div>`);
+  }
+  $('#calendar-grid').innerHTML = cells.join('');
+  const sorted = [...state.bills].sort((a,b) => (a.dueDate || '9999').localeCompare(b.dueDate || '9999'));
+  $('#agenda-list').innerHTML = `<div class="section-heading"><h3>August agenda</h3><span class="badge">${state.bills.length} items</span></div>` + sorted.map((bill) => `<div class="agenda-item"><span>${categoryIcon(bill.category)}</span><div><strong>${escapeHtml(bill.name)}</strong><div>${bill.dueDate ? formatDate(bill.dueDate) : escapeHtml(bill.dueLabel || 'Recurring')}</div></div><strong>${formatMoney(bill.amountCents)}</strong></div>`).join('');
+}
 
 function renderSavings() {
   const savings = normalizeSavings(state.savings);
@@ -123,6 +146,25 @@ function stopMessage(stop) {
   return `${stop.label} still needs funding.`;
 }
 
+
+async function loadBankReferenceArt() {
+  const image = $('#bank-reference-art');
+  if (!image) return;
+  try {
+    const partCount = Number(image.dataset.bankArtParts || 4);
+    const paths = Array.from({ length: partCount }, (_, index) => `./assets/approved-bank-reference-4k-${String(index + 1).padStart(2, '0')}.txt`);
+    const parts = await Promise.all(paths.map(async (path) => {
+      const response = await fetch(path);
+      if (!response.ok) throw new Error(`Unable to load ${path}`);
+      return response.text();
+    }));
+    image.src = `data:image/webp;base64,${parts.join('')}`;
+  } catch {
+    image.hidden = true;
+    toast('The 4K bank artwork could not be loaded.');
+  }
+}
+
 function bindEvents() {
   $$('.nav-button').forEach((button) => button.addEventListener('click', () => showView(button.dataset.view)));
   $('#apply-funding').addEventListener('click', () => {
@@ -150,6 +192,3 @@ function bindEvents() {
   $('#bill-table-body').addEventListener('click', handleBillTableClick);
 
   $('#savings-form').addEventListener('submit', (event) => {
-    event.preventDefault();
-    const boxes = [...$('#vault-box-editor').querySelectorAll('[data-vault-box-id]')].map((row, index) => {
-      const targetCents = parseMoneyToCents(row.querySelector('[data-vault-box-target]').value);
