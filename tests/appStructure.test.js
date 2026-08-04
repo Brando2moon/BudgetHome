@@ -3,9 +3,15 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
-const readAppSource = async () => (await Promise.all([
-  read('app-source-1.txt'), read('app-source-2.txt'), read('app-source-3.txt'),
-])).join('\n');
+const readAppSource = async () => {
+  try {
+    return (await Promise.all([
+      read('app-source-1.txt'), read('app-source-2.txt'), read('app-source-3.txt'),
+    ])).join('\n');
+  } catch {
+    return read('app.js');
+  }
+};
 
 test('ships the bank, bills, characters, and settings views', async () => {
   const html = await read('index.html');
@@ -31,11 +37,12 @@ test('registers local persistence and a continuous animation loop', async () => 
   assert.match(source, /buildBankStops/);
 });
 
-test('registers an offline service worker', async () => {
+test('registers the refreshed offline service worker', async () => {
   const source = await readAppSource();
   assert.match(source, /serviceWorker/);
   const worker = await read('service-worker.js');
-  assert.match(worker, /camilles-finance-v3/);
+  assert.match(worker, /camilles-finance-v4/);
+  assert.match(worker, /reference-theme\.css/);
 });
 
 test('renders a recognizable bank floor plan with a dedicated vault wing', async () => {
@@ -55,4 +62,14 @@ test('provides editable safety-deposit boxes on the savings screen', async () =>
   assert.match(html, /id="vault-box-editor"/);
   assert.match(source, /renderVaultBoxEditor/);
   assert.match(source, /data-vault-box-saved/);
+});
+
+test('loads the cutaway theme with furnished rooms and character facial features', async () => {
+  const loader = await read('app.js');
+  const theme = await read('reference-theme.css');
+  assert.match(loader, /reference-theme\.css/);
+  assert.match(theme, /\.bank-room::before/);
+  assert.match(theme, /\.bank-room::after/);
+  assert.match(theme, /\.pixel-character \.head::before/);
+  assert.match(theme, /\.pixel-character \.head::after/);
 });

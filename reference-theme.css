@@ -1,0 +1,434 @@
+/* Camille's Finance — reference-inspired cutaway pixel bank theme */
+:root {
+  --cutaway-wall: #ead8b9;
+  --cutaway-wall-light: #f8ead2;
+  --cutaway-wood: #7b4e2a;
+  --cutaway-wood-dark: #4b2c17;
+  --cutaway-purple: #4b2874;
+  --cutaway-purple-light: #7953a6;
+  --cutaway-gold: #e3b850;
+  --cutaway-night: #1d1029;
+}
+
+body {
+  background:
+    radial-gradient(circle at 8% 8%, rgba(66,117,67,.65) 0 6rem, transparent 6.2rem),
+    radial-gradient(circle at 92% 11%, rgba(45,102,59,.62) 0 7rem, transparent 7.2rem),
+    linear-gradient(180deg, #1a1320 0 16%, #2c183b 52%, #160d1f 100%);
+}
+
+.bank-frame {
+  border-color: #b98730;
+  background: #160a21;
+  box-shadow: 0 22px 55px rgba(4,1,8,.55), 8px 8px 0 #0d0613;
+}
+
+.bank-marquee {
+  border-bottom-color: var(--cutaway-gold);
+  background: linear-gradient(180deg,#27113d,#160820);
+  box-shadow: inset 0 -5px 0 #6a3b13;
+}
+
+.bank-status-bar {
+  background: #3d205f;
+  border-bottom: 3px solid #b98730;
+}
+
+.bank-scene {
+  min-height: 980px;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 2% 10%, rgba(48,112,58,.58) 0 90px, transparent 92px),
+    radial-gradient(circle at 98% 8%, rgba(40,96,54,.55) 0 100px, transparent 102px),
+    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 20px 20px,
+    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px) 0 0 / 20px 20px,
+    #1c1027;
+}
+
+.bank-building {
+  min-height: 920px;
+  padding: 14px;
+  border: 7px solid #9b6f2b;
+  background: #d8c09a;
+  box-shadow: inset 0 0 0 5px #f0d9b2, 10px 10px 0 #0d0613;
+}
+
+.bank-roofline {
+  height: 22px;
+  margin: -2px 7% 10px;
+  border-top-color: #f2ce70;
+  border-bottom-color: #936521;
+}
+
+.bank-floor {
+  min-height: 850px;
+  grid-template-columns: minmax(0, 4fr) minmax(245px, 1.15fr);
+  grid-template-rows: auto 178px;
+  gap: 12px;
+  padding: 12px;
+  border: 5px solid #6e4a22;
+  background:
+    linear-gradient(90deg, transparent 0 47.5%, rgba(79,42,119,.92) 47.5% 52.5%, transparent 52.5%),
+    linear-gradient(0deg, transparent 0 45%, rgba(79,42,119,.92) 45% 55%, transparent 55%),
+    repeating-linear-gradient(45deg,#baa1d0 0 18px,#a98fc1 18px 36px);
+}
+
+.bank-rooms {
+  grid-template-columns: repeat(4, minmax(150px,1fr));
+  gap: 10px;
+  align-content: start;
+}
+
+.bank-room {
+  min-height: 214px;
+  padding: 45px 10px 10px;
+  overflow: hidden;
+  color: #2f1b39;
+  border: 4px solid #8c652d;
+  background:
+    radial-gradient(ellipse at 13% 27%, #4e9c4a 0 8px, transparent 9px),
+    radial-gradient(ellipse at 18% 24%, #2f7b36 0 10px, transparent 11px),
+    linear-gradient(180deg, var(--cutaway-wall-light) 0 48%, #80512c 48% 51%, #ae7542 51% 100%);
+  box-shadow: inset 0 0 0 4px rgba(255,255,255,.42), 5px 5px 0 rgba(18,3,30,.88);
+}
+
+.bank-room:nth-child(9) {
+  grid-column: span 2;
+}
+
+.bank-room::before {
+  content: '';
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 53px;
+  height: 50px;
+  border: 3px solid #4f2e16;
+  background: linear-gradient(180deg,#956338 0 18%,#6d421f 18% 100%);
+  box-shadow:
+    -27px 23px 0 -18px #422615,
+    27px 23px 0 -18px #422615;
+}
+
+.bank-room::after {
+  content: '';
+  position: absolute;
+  left: calc(50% - 39px);
+  bottom: 83px;
+  width: 78px;
+  height: 42px;
+  border: 3px solid #34263e;
+  background:
+    linear-gradient(90deg,transparent 0 7%,rgba(111,255,165,.82) 7% 16%,transparent 16% 25%,rgba(119,137,255,.9) 25% 40%,transparent 40% 100%),
+    linear-gradient(180deg,#15121d,#272037);
+  box-shadow:
+    0 7px 0 -3px #261a31,
+    0 14px 0 -5px #d8cbe7,
+    -60px 19px 0 -12px #f5efe7,
+    58px 19px 0 -13px #a8653a;
+}
+
+.room-header {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  right: 10px;
+  min-height: 29px;
+  align-items: center;
+  padding: 5px 8px;
+  color: #efc45c;
+  border: 3px solid #9c6b24;
+  background: #45236c;
+  box-shadow: 0 2px 0 rgba(0,0,0,.38);
+  font-family: "Courier New", monospace;
+  text-transform: uppercase;
+}
+
+.room-name {
+  font-size: .84rem;
+  letter-spacing: .035em;
+}
+
+.room-name::after {
+  content: ' OFFICE';
+  opacity: .78;
+  font-size: .72em;
+}
+
+.bank-room:nth-child(2n) .room-header { background:#5a2a5d; }
+.bank-room:nth-child(3n) .room-header { background:#244f62; }
+.bank-room:nth-child(4n) .room-header { background:#5b3b20; }
+.bank-room:nth-child(5n) .room-header { background:#2d5a46; }
+
+.room-screen {
+  position: absolute;
+  left: 9px;
+  right: 9px;
+  bottom: 8px;
+  z-index: 2;
+  margin: 0;
+  min-height: 50px;
+  padding: 6px 8px;
+  color: #f8f3ff;
+  border: 3px solid #c7afe2;
+  background: rgba(18,8,28,.94);
+  font-size: .68rem;
+  line-height: 1.25;
+}
+
+.room-amount {
+  font-size: 1rem;
+  color: #ffd56e;
+}
+
+.bank-room.active {
+  outline: 6px solid rgba(255,225,129,.82);
+  outline-offset: -9px;
+}
+
+.bank-room.overdue {
+  border-color: #d74f63;
+}
+
+.bank-room.funded,
+.bank-room.paid {
+  border-color: #4dbd72;
+}
+
+.bank-vault {
+  min-height: 650px;
+  padding: 13px;
+  border: 6px solid #6f4d1c;
+  background:
+    repeating-linear-gradient(90deg,rgba(102,255,222,.12) 0 2px,transparent 2px 18px),
+    linear-gradient(145deg,#4c5661,#222a32);
+  box-shadow: inset 0 0 0 5px #89949f, 6px 6px 0 #0e0713;
+}
+
+.vault-sign {
+  color: #2b153d;
+  border-color: #855a18;
+  background: #e4b94f;
+  box-shadow: 0 3px 0 #25102f;
+}
+
+.bank-vault-door {
+  width: 162px;
+  border-width: 15px;
+  background: repeating-conic-gradient(#77828d 0 9deg,#3b444e 9deg 18deg);
+  box-shadow: inset 0 0 0 11px #1c232b, 6px 6px 0 #11161b;
+}
+
+.bank-vault-wheel {
+  border-color: #f0c75e;
+  color: #f0c75e;
+}
+
+.vault-boxes {
+  gap: 7px;
+}
+
+.safety-deposit-box.compact {
+  min-height: 78px;
+  border-color: #252c34;
+  background: linear-gradient(#dbe2e8,#89949f);
+}
+
+.bank-corridor {
+  min-height: 166px;
+  margin-top: 8px;
+  border-color: #8f6627;
+  background:
+    linear-gradient(90deg,transparent 0 12%,rgba(71,34,108,.9) 12% 88%,transparent 88%),
+    repeating-linear-gradient(90deg,#d9c2e9 0 24px,#cbb0df 24px 48px);
+  box-shadow: inset 0 0 0 4px rgba(255,255,255,.3);
+}
+
+.teller-counter {
+  left: 16%;
+  right: 16%;
+  background: #48256d;
+  border-color: #d0a741;
+}
+
+.route-carpet {
+  left: 9%;
+  right: 9%;
+  height: 39px;
+  border-color: #ca9d38;
+  background: repeating-linear-gradient(90deg,#563582 0 24px,#744fa1 24px 48px);
+}
+
+.bank-door {
+  border-color: #d1aa49;
+  background: linear-gradient(90deg,#36204d 48%,#d1aa49 48% 52%,#36204d 52%);
+}
+
+.pixel-character {
+  width: 54px;
+  height: 84px;
+  filter: drop-shadow(4px 5px 0 rgba(0,0,0,.42));
+}
+
+.pixel-character .head {
+  width: 28px;
+  height: 28px;
+  left: 13px;
+  top: 12px;
+  border-radius: 2px;
+}
+
+.pixel-character .head::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 9px;
+  width: 4px;
+  height: 4px;
+  background: #120718;
+  box-shadow: 14px 0 0 #120718;
+}
+
+.pixel-character .head::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 20px;
+  width: 9px;
+  height: 3px;
+  background: #843b47;
+  box-shadow: 3px -7px 0 rgba(0,0,0,.2);
+}
+
+.pixel-character .hair {
+  width: 34px;
+  height: 16px;
+  left: 10px;
+  top: 2px;
+}
+
+.pixel-character[data-hair-style="fade"] .hair {
+  width: 28px;
+  left: 13px;
+  height: 11px;
+  box-shadow: 0 7px 0 var(--hair);
+}
+
+.pixel-character[data-hair-style="waves"] .hair {
+  width: 32px;
+  left: 11px;
+  height: 12px;
+  box-shadow: -3px 4px 0 var(--hair),3px 4px 0 var(--hair);
+}
+
+.pixel-character[data-hair-style="locs"] .hair {
+  box-shadow: -4px 6px 0 var(--hair),4px 6px 0 var(--hair),-5px 13px 0 var(--hair),5px 13px 0 var(--hair);
+}
+
+.pixel-character[data-hair-style="braids"] .hair {
+  box-shadow: -4px 6px 0 var(--hair),4px 6px 0 var(--hair),-7px 14px 0 var(--hair),7px 14px 0 var(--hair);
+}
+
+.pixel-character[data-hair-style="afro"] .hair {
+  width: 40px;
+  height: 21px;
+  left: 7px;
+  top: -1px;
+  box-shadow: -4px 6px 0 var(--hair),4px 6px 0 var(--hair),0 11px 0 var(--hair);
+}
+
+.pixel-character[data-hair-style="curls"] .hair {
+  width: 36px;
+  height: 18px;
+  left: 9px;
+  box-shadow: -4px 5px 0 var(--hair),4px 5px 0 var(--hair),-2px 11px 0 var(--hair),2px 11px 0 var(--hair);
+}
+
+.pixel-character[data-hair-style="bun"] .hair {
+  width: 32px;
+  height: 14px;
+  left: 11px;
+  top: 5px;
+  box-shadow: -4px 5px 0 var(--hair),4px 5px 0 var(--hair),7px -8px 0 2px var(--hair);
+}
+
+.pixel-character .body {
+  width: 32px;
+  height: 27px;
+  left: 11px;
+  top: 41px;
+}
+
+.pixel-character[data-body-style="slim"] .body { width: 27px; left: 13px; }
+.pixel-character[data-body-style="broad"] .body { width: 37px; left: 8px; }
+.pixel-character[data-body-style="curvy"] .body { width: 35px; left: 9px; border-radius: 0 0 4px 4px; }
+
+.pixel-character .left-arm,
+.pixel-character .right-arm {
+  top: 42px;
+  height: 26px;
+}
+
+.pixel-character .left-leg,
+.pixel-character .right-leg {
+  top: 67px;
+  height: 18px;
+}
+
+.thought-bubble {
+  border-radius: 11px;
+  background: #fff9ed;
+}
+
+.thought-bubble::after {
+  content: '';
+  position: absolute;
+  left: 15px;
+  bottom: -10px;
+  width: 16px;
+  height: 16px;
+  border-left: 3px solid var(--plum-950);
+  border-bottom: 3px solid var(--plum-950);
+  background: #fff9ed;
+  transform: rotate(-45deg);
+}
+
+@media (max-width: 1120px) {
+  .bank-rooms { grid-template-columns: repeat(3,minmax(155px,1fr)); }
+  .bank-room:nth-child(9) { grid-column: auto; }
+  .bank-scene { min-height: 1160px; }
+  .bank-building { min-height: 1100px; }
+}
+
+@media (max-width: 980px) {
+  .bank-scene { min-height: 1750px; }
+  .bank-building { min-height: 1680px; }
+  .bank-floor {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 180px;
+  }
+  .bank-rooms {
+    grid-template-columns: repeat(2,minmax(160px,1fr));
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .bank-vault {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 580px;
+  }
+  .bank-corridor {
+    grid-column: 1;
+    grid-row: 3;
+  }
+}
+
+@media (max-width: 640px) {
+  .bank-scene { min-height: 2860px; padding: 7px; }
+  .bank-building { min-height: 2780px; padding: 7px; }
+  .bank-floor { padding: 7px; }
+  .bank-rooms { grid-template-columns: 1fr; }
+  .bank-room { min-height: 225px; }
+  .bank-vault { min-height: 610px; }
+  .room-name { font-size: .75rem; }
+}
