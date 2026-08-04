@@ -63,22 +63,35 @@
             <span id="loop-status">Preparing the bank route…</span>
             <span id="route-counter">Stop 0 of 0</span>
           </div>
-          <div id="bank-scene" class="bank-scene" aria-label="Animated budget bank floor plan">
-            <div id="bank-rooms" class="bank-rooms"></div>
-            <div class="bank-lobby">
-              <div class="entrance-label">ENTRANCE</div>
-              <div id="pixel-character" class="pixel-character" aria-label="Animated family character">
-                <span class="pixel hair"></span>
-                <span class="pixel head"></span>
-                <span class="pixel body"></span>
-                <span class="pixel left-arm"></span>
-                <span class="pixel right-arm"></span>
-                <span class="pixel left-leg"></span>
-                <span class="pixel right-leg"></span>
+          <div id="bank-scene" class="bank-scene" aria-label="Animated top-down budget bank floor plan">
+            <div class="bank-building">
+              <div class="bank-roofline" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+              <div class="bank-floor">
+                <div id="bank-rooms" class="bank-rooms"></div>
+                <aside id="bank-vault" class="bank-vault" data-room-id="savings-vault" aria-label="Savings Vault">
+                  <div class="vault-sign">SAVINGS VAULT</div>
+                  <div class="bank-vault-door" aria-hidden="true"><div class="bank-vault-wheel">✦</div></div>
+                  <div id="bank-vault-total" class="bank-vault-total">$0.00 saved</div>
+                  <div id="vault-boxes" class="vault-boxes"></div>
+                </aside>
+                <div class="bank-corridor">
+                  <div class="teller-counter"><span>TELLER</span><span>DEPOSIT DESK</span><span>RECEIPTS</span></div>
+                  <div class="route-carpet" aria-hidden="true"></div>
+                  <div class="bank-door entrance-door" data-room-id="entrance"><span>ENTRANCE</span></div>
+                  <div class="bank-door exit-door" data-room-id="exit"><span>EXIT</span></div>
+                </div>
               </div>
-              <div id="thought-bubble" class="thought-bubble" aria-live="polite">Ready to make a deposit.</div>
-              <div class="exit-label">EXIT</div>
             </div>
+            <div id="pixel-character" class="pixel-character" aria-label="Animated family character">
+              <span class="pixel hair"></span>
+              <span class="pixel head"></span>
+              <span class="pixel body"></span>
+              <span class="pixel left-arm"></span>
+              <span class="pixel right-arm"></span>
+              <span class="pixel left-leg"></span>
+              <span class="pixel right-leg"></span>
+            </div>
+            <div id="thought-bubble" class="thought-bubble" aria-live="polite">Ready to make a deposit.</div>
           </div>
         </div>
 
@@ -141,20 +154,21 @@
       <section class="view" data-view="savings" aria-labelledby="savings-heading">
         <div class="page-heading"><div><p class="eyebrow">THE VAULT</p><h2 id="savings-heading">Savings</h2></div></div>
         <div class="savings-layout">
-          <form id="savings-form" class="panel form-card">
-            <h3>Set your savings vault</h3>
-            <label>Goal name<input id="savings-name" maxlength="40" /></label>
-            <label>Goal amount<input id="savings-target" inputmode="decimal" /></label>
-            <label>Actually saved<input id="savings-saved" inputmode="decimal" /></label>
-            <button class="button gold" type="submit">Update vault</button>
+          <form id="savings-form" class="panel form-card vault-editor-card">
+            <h3>Manage the Savings Vault</h3>
+            <label>Vault name<input id="savings-name" maxlength="40" /></label>
+            <p class="help-text">Each safety-deposit box has its own goal and saved balance.</p>
+            <div id="vault-box-editor" class="vault-box-editor"></div>
+            <button class="button gold" type="submit">Update vault boxes</button>
           </form>
           <div class="panel vault-card">
             <div class="vault-door"><div class="vault-wheel">✦</div></div>
-            <div>
+            <div class="vault-summary">
               <p class="eyebrow">CURRENT VAULT</p>
               <h3 id="vault-name">Savings Vault</h3>
               <p id="vault-progress-text"></p>
               <div class="progress-track"><div id="vault-progress" class="progress-fill"></div></div>
+              <div id="savings-vault-boxes" class="vault-box-wall"></div>
             </div>
           </div>
         </div>
