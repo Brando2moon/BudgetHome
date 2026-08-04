@@ -1,3 +1,18 @@
+      const savedCents = parseMoneyToCents(row.querySelector('[data-vault-box-saved]').value);
+      return {
+        id: row.dataset.vaultBoxId || DEFAULT_SAVINGS_BOXES[index].id,
+        name: row.querySelector('[data-vault-box-name]').value.trim() || DEFAULT_SAVINGS_BOXES[index].name,
+        targetCents,
+        savedCents,
+      };
+    });
+    if (boxes.some((box) => box.targetCents === null || box.savedCents === null)) return toast('Enter valid amounts for every vault box.');
+    state.savings = normalizeSavings({ name: $('#savings-name').value.trim() || 'Savings Vault', boxes });
+    saveState(); render(); toast('Savings Vault boxes updated.');
+  });
+  $('#bank-vault').addEventListener('click', () => showView('savings'));
+
+  $('#character-form').addEventListener('input', () => applyCharacterStyle($('#character-preview'), formCharacter()));
   $('#character-form').addEventListener('submit', saveCharacterFromForm);
   $('#new-character').addEventListener('click', clearCharacterForm);
   $('#character-list').addEventListener('click', handleCharacterListClick);
