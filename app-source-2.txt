@@ -1,4 +1,3 @@
-}
 
 function renderSavings() {
   const savings = normalizeSavings(state.savings);
