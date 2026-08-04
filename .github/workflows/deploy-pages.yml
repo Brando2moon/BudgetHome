@@ -40,9 +40,10 @@ jobs:
         uses: actions/configure-pages@v5
       - name: Prepare static site
         run: |
-          mkdir -p _site/src
-          cp index.html styles.css reference-theme.css app.js app-source-*.txt service-worker.js manifest.webmanifest _site/
+          mkdir -p _site/src _site/assets
+          cp index.html styles.css app.js service-worker.js manifest.webmanifest _site/
           cp src/budgetEngine.js _site/src/
+          cp assets/approved-bank-reference-4k-*.txt _site/assets/
           touch _site/.nojekyll
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
