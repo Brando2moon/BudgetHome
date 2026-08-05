@@ -35,7 +35,7 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir -p _site/src _site/assets
-          cp index.html styles.css reference-theme.css paycheck-4k-theme.css app.js app-source-*.txt service-worker.js manifest.webmanifest _site/
+          cp index.html refresh.html styles.css reference-theme.css paycheck-4k-theme.css app.js app-source-*.txt service-worker.js manifest.webmanifest _site/
           cp src/budgetEngine.js _site/src/
           cp assets/approved-bank-reference-4k-*.txt _site/assets/
           touch _site/.nojekyll
