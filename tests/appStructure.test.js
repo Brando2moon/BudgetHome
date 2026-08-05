@@ -60,17 +60,17 @@ test('ships the approved office visual with invisible interaction zones', async 
   assert.match(html, /id="bank-reference-art"/);
   assert.match(html, /exact approved office background/);
   assert.match(source, /loadBankReferenceArt/);
-  assert.match(loader, /data-bank-art-parts['"],\s*['"]35/);
+  assert.match(loader, /data-bank-art-parts['"],\s*['"]14/);
   assert.match(loader, /parts\.join\(''\)/);
   assert.match(exactStyles, /aspect-ratio:\s*1586\s*\/\s*992/);
   assert.match(exactStyles, /\.bank-room,[\s\S]*background:\s*transparent\s*!important/);
   assert.match(exactStyles, /\.room-banner,[\s\S]*display:\s*none\s*!important/);
 
-  const encoded = (await Promise.all(Array.from({ length: 35 }, (_, index) =>
+  const encoded = (await Promise.all(Array.from({ length: 14 }, (_, index) =>
     read(`assets/approved-bank-reference-4k-${String(index + 1).padStart(2, '0')}.txt`)
   ))).join('');
   const art = Buffer.from(encoded, 'base64');
-  assert.equal(createHash('sha256').update(art).digest('hex'), 'b5c7db638862a5c6b9b5ef9a027b5e7f69f15cb0c6b19b1d2e3a8a98bc846e6c');
+  assert.equal(createHash('sha256').update(art).digest('hex'), '228f94416991aa09194757b39326cdd5a15f2e0e4931d6317b6feb04b866db13');
 });
 
 test('keeps the paycheck planner and closest-paycheck routing', async () => {
