@@ -1,4 +1,4 @@
-const CACHE_NAME = 'camilles-finance-v6';
+const CACHE_NAME = 'camilles-finance-v8';
 const ASSETS = [
   './',
   './index.html',
@@ -12,7 +12,7 @@ const ASSETS = [
   './app-source-3.txt',
   './src/budgetEngine.js',
   './manifest.webmanifest',
-  ...Array.from({ length: 20 }, (_, index) => `./assets/approved-bank-reference-4k-${String(index + 1).padStart(2, '0')}.txt`),
+  ...Array.from({ length: 8 }, (_, index) => `./assets/exact-approved-v8-${String(index + 1).padStart(2, '0')}.txt`),
 ];
 
 self.addEventListener('install', (event) => {
@@ -44,10 +44,12 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
-      const copy = response.clone();
-      caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-      return response;
-    })),
+    fetch(event.request, { cache: 'no-store' })
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return response;
+      })
+      .catch(() => caches.match(event.request)),
   );
 });

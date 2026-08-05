@@ -1,30 +1,42 @@
-/* --- Exact approved reference / 4K visual pass --- */
-.app-shell { width: min(3900px, 100%); }
+/* Release 8: exact approved Camille's Finance AI Workshop visual. */
+.app-shell { width: min(1900px, 100%); }
 .summary-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-.bank-frame { overflow: hidden; }
-.bank-scene { min-height: auto; padding: 18px; }
-.bank-building { position: relative; min-height: 0; aspect-ratio: 3840 / 2160; padding: 0; border: 4px solid #d1b15b; background: #24153c; overflow: hidden; }
-.bank-reference-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; z-index: 0; }
-.bank-floor { position: absolute; inset: 0; z-index: 1; padding: 4.8% 3.1% 3.6%; border: 0; background: transparent; display: grid; grid-template-columns: 18.5% 20.25% 20.25% 20.25% 20.75%; grid-template-rows: 36% 20% 36%; gap: 1.3%; min-height: 0; }
-.bank-floor::before,.bank-floor::after,.bank-roofline,.room-stage,.vault-sign,.bank-vault-door,.teller-counter,.route-carpet { display: none !important; }
-.bank-rooms { grid-column: 1 / span 4; grid-row: 1 / span 3; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: 1fr .68fr 1fr; gap: 2.5%; align-content: stretch; }
-.bank-room { min-height: 0; padding: 2.1rem .55rem .55rem; border: 2px solid rgba(255,220,128,.42); background: rgba(30,16,48,.18); box-shadow: none; color: white; backdrop-filter: blur(1px); }
-.bank-room:nth-child(9) { min-height: 0; }
-.room-banner { top: .35rem; left: .45rem; right: .45rem; padding: .32rem .45rem; background: rgba(48,23,79,.86); border: 2px solid rgba(242,196,92,.92); color: #ffd770; font-size: .56rem; }
-.room-screen { margin-top: auto; background: rgba(16,7,25,.78); border: 2px solid rgba(208,182,239,.75); padding: .45rem; font-size: .62rem; }
-.room-amount { font-size: .9rem; }
-.bank-vault { grid-column: 5; grid-row: 1 / span 3; border: 0; background: rgba(14,8,23,.1); box-shadow: none; padding: 10% 9% 7%; display: flex; flex-direction: column; justify-content: flex-end; }
-.bank-vault-total { margin: auto 0 1rem; padding: .4rem .5rem; background: rgba(20,10,31,.76); border: 2px solid rgba(255,215,109,.84); color: #ffd66d; }
-.vault-boxes { display: grid; grid-template-columns: 1fr; gap: .45rem; }
-.safety-deposit-box { min-height: 56px; padding: 1.15rem .4rem .35rem; border: 2px solid rgba(45,53,62,.92); background: rgba(220,229,237,.9); box-shadow: none; font-size: .62rem; }
-.bank-corridor { grid-column: 1 / span 4; grid-row: 2; min-height: 0; position: relative; background: transparent; border: 0; }
-.bank-door { position: absolute; width: 12%; height: 34%; border: 0; background: transparent; color: transparent; }
-.entrance-door { left: 44%; bottom: 1%; }.exit-door { right: 1%; bottom: 30%; top: auto; }
-.pixel-character { width: 78px; height: 116px; filter: drop-shadow(6px 8px 0 rgba(0,0,0,.4)); }
-.pixel-character .head { width: 34px; height: 34px; left: 22px; top: 14px; }.pixel-character .hair { width: 40px; height: 18px; left: 19px; top: 3px; }.pixel-character .eye { width: 5px; height: 5px; top: 29px; }.pixel-character .left-eye { left: 29px; }.pixel-character .right-eye { right: 29px; }.pixel-character .nose { left: 37px; top: 35px; }.pixel-character .mouth { width: 12px; left: 33px; top: 45px; }.pixel-character .body { width: 38px; height: 36px; left: 20px; top: 54px; }.pixel-character .left-arm,.pixel-character .right-arm { width: 10px; height: 30px; top: 56px; }.pixel-character .left-leg,.pixel-character .right-leg { width: 14px; height: 24px; top: 90px; }
-.thought-bubble { max-width: 300px; font-size: .88rem; }
-.bank-dashboard-grid { grid-template-columns: 1.05fr 1fr 1.2fr; }.paycheck-planner-panel { display: grid; align-content: start; gap: 10px; }.paycheck-editor { display: grid; gap: 10px; }
-.paycheck-card { border: 3px solid var(--purple-800); background: #fff; padding: 12px; box-shadow: 4px 4px 0 rgba(63,16,104,.12); }.paycheck-card.short { border-color: #9f2d3c; background: #fff2f4; }.paycheck-card.covered { border-color: #2f855a; background: #f2fff6; }.paycheck-card-header { display: flex; justify-content: space-between; gap: 10px; align-items: start; }.paycheck-card-header h4 { margin: 0; color: var(--plum-950); }.paycheck-totals { display: flex; justify-content: space-between; gap: 10px; font-weight: 850; margin-top: 8px; flex-wrap: wrap; }.paycheck-bills { display: grid; gap: 6px; margin-top: 8px; }.paycheck-bill-line { display: flex; justify-content: space-between; gap: 8px; padding: 6px 8px; border: 2px solid #e1d5ee; background: #fbf9ff; }.paycheck-breakdown { display: grid; gap: 8px; }.paycheck-warning,.paycheck-ok { padding: 10px; border: 2px solid var(--purple-800); background: #fbf9ff; font-weight: 800; }.paycheck-warning { border-color: #9f2d3c; background: #fff2f4; }.paycheck-ok { border-color: #2f855a; background: #effff4; }
-@media (max-width: 1400px) { .summary-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }.bank-dashboard-grid { grid-template-columns: 1fr; } }
-@media (max-width: 980px) { .bank-building { aspect-ratio: auto; min-height: 1040px; }.bank-reference-art { object-fit: cover; }.bank-floor { position: absolute; inset: 0; grid-template-columns: 1fr; grid-template-rows: auto auto auto; padding: 8px; }.bank-rooms { grid-column: 1; grid-row: 1; grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-rows: auto; }.bank-room,.bank-room:nth-child(9) { min-height: 190px; }.bank-vault { grid-column: 1; grid-row: 2; min-height: 380px; padding-top: 55px; }.bank-corridor { grid-column: 1; grid-row: 3; min-height: 120px; } }
-@media (max-width: 640px) { .summary-grid { grid-template-columns: 1fr; }.bank-building { min-height: 1380px; }.bank-rooms { grid-template-columns: 1fr; }.room-banner { font-size: .52rem; } }
+.bank-frame.panel { position: relative; overflow: hidden; padding: 0; border: 0; background: #170b24; box-shadow: none; }
+.bank-marquee, .bank-status-bar { display: none !important; }
+.bank-scene { position: relative; min-height: 0 !important; padding: 0 !important; overflow: hidden; background: #170b24; }
+.bank-building { position: relative; width: 100%; min-height: 0 !important; aspect-ratio: 1586 / 992 !important; padding: 0 !important; overflow: hidden; border: 0 !important; background: #170b24; box-shadow: none !important; }
+.bank-reference-art { position: absolute; inset: 0; z-index: 0; display: block; width: 100%; height: 100%; object-fit: contain !important; object-position: center; image-rendering: pixelated; background: #170b24; }
+.bank-roofline, .bank-room > *, .bank-vault > *, .bank-corridor > * { display: none !important; }
+.bank-room::before, .bank-room::after, .bank-vault::before, .bank-vault::after { display: none !important; content: none !important; }
+.pixel-character, .thought-bubble { opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }
+.bank-floor { position: absolute !important; inset: 0 !important; z-index: 2; display: block !important; min-height: 0 !important; padding: 0 !important; border: 0 !important; background: transparent !important; pointer-events: none; }
+.bank-rooms { position: absolute !important; inset: 0 !important; display: block !important; pointer-events: none; }
+.bank-room, .bank-vault, .bank-corridor { position: absolute !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: hidden; border: 0 !important; outline: 0 !important; background: transparent !important; box-shadow: none !important; backdrop-filter: none !important; color: transparent !important; opacity: 1 !important; pointer-events: auto; cursor: pointer; }
+.bank-room:nth-child(1) { left: 2.5% !important; top: 4% !important; width: 27.4% !important; height: 32.5% !important; }
+.bank-room:nth-child(2) { left: 30.7% !important; top: 4% !important; width: 20.5% !important; height: 32.5% !important; }
+.bank-room:nth-child(3) { left: 51.2% !important; top: 4% !important; width: 21.8% !important; height: 32.5% !important; }
+.bank-room:nth-child(4) { left: 73.1% !important; top: 4% !important; width: 24.6% !important; height: 32.5% !important; }
+.bank-room:nth-child(5) { left: 2.5% !important; top: 39.2% !important; width: 13.7% !important; height: 35.8% !important; }
+.bank-room:nth-child(6) { left: 16.2% !important; top: 39.2% !important; width: 13.7% !important; height: 35.8% !important; }
+.bank-room:nth-child(7) { left: 53.7% !important; top: 39.2% !important; width: 10.7% !important; height: 35.8% !important; }
+.bank-room:nth-child(8) { left: 64.4% !important; top: 39.2% !important; width: 10.7% !important; height: 35.8% !important; }
+.bank-room:nth-child(9) { left: 75.1% !important; top: 39.2% !important; width: 22.6% !important; height: 35.8% !important; }
+.bank-vault { left: 73.1% !important; top: 4% !important; width: 24.6% !important; height: 32.5% !important; }
+.bank-corridor { left: 29.8% !important; top: 35.7% !important; width: 45.5% !important; height: 49.5% !important; }
+.bank-dashboard-grid { grid-template-columns: 1.05fr 1fr 1.2fr; }
+.paycheck-planner-panel { display: grid; align-content: start; gap: 10px; }
+.paycheck-editor { display: grid; gap: 10px; }
+.paycheck-card { border: 3px solid var(--purple-800); background: #fff; padding: 12px; box-shadow: 4px 4px 0 rgba(63,16,104,.12); }
+.paycheck-card.short { border-color: #9f2d3c; background: #fff2f4; }
+.paycheck-card.covered { border-color: #2f855a; background: #f2fff6; }
+.paycheck-card-header { display: flex; justify-content: space-between; gap: 10px; align-items: start; }
+.paycheck-card-header h4 { margin: 0; color: var(--plum-950); }
+.paycheck-totals { display: flex; justify-content: space-between; gap: 10px; font-weight: 850; margin-top: 8px; flex-wrap: wrap; }
+.paycheck-bills { display: grid; gap: 6px; margin-top: 8px; }
+.paycheck-bill-line { display: flex; justify-content: space-between; gap: 8px; padding: 6px 8px; border: 2px solid #e1d5ee; background: #fbf9ff; }
+.paycheck-breakdown { display: grid; gap: 8px; }
+.paycheck-warning, .paycheck-ok { padding: 10px; border: 2px solid var(--purple-800); background: #fbf9ff; font-weight: 800; }
+.paycheck-warning { border-color: #9f2d3c; background: #fff2f4; }
+.paycheck-ok { border-color: #2f855a; background: #effff4; }
+@media (max-width: 1400px) { .summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .bank-dashboard-grid { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .summary-grid { grid-template-columns: 1fr; } }

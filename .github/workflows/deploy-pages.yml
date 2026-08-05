@@ -41,6 +41,7 @@ jobs:
           cp index.html refresh.html styles.css reference-theme.css paycheck-4k-theme.css app.js app-source-*.txt service-worker.js manifest.webmanifest _site/
           cp src/budgetEngine.js _site/src/
           cp assets/approved-bank-reference-4k-*.txt _site/assets/
+          cp assets/exact-approved-v8-*.txt _site/assets/
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v4
         with:

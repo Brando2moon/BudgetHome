@@ -1,6 +1,6 @@
 const themeFiles = [
   ['./reference-theme.css?v=4', 'reference-theme'],
-  ['./paycheck-4k-theme.css?v=5', 'paycheck-4k-theme'],
+  ['./paycheck-4k-theme.css?v=8', 'paycheck-4k-theme'],
 ];
 
 for (const [href, key] of themeFiles) {
@@ -12,16 +12,21 @@ for (const [href, key] of themeFiles) {
   document.head.append(theme);
 }
 
+document.querySelector('#bank-reference-art')?.setAttribute('data-bank-art-parts', '8');
+
 const partPaths = ['./app-source-1.txt', './app-source-2.txt', './app-source-3.txt'];
 
 try {
-  const responses = await Promise.all(partPaths.map((path) => fetch(path)));
+  const responses = await Promise.all(partPaths.map((path) => fetch(path, { cache: 'no-store' })));
   const failed = responses.find((response) => !response.ok);
   if (failed) throw new Error(`Could not load application source (${failed.status}).`);
 
   const parts = await Promise.all(responses.map((response) => response.text()));
   const engineUrl = new URL('./src/budgetEngine.js', window.location.href).href;
-  const source = parts.join('').replace("'./src/budgetEngine.js'", JSON.stringify(engineUrl));
+  const source = parts.join('')
+    .replace("'./src/budgetEngine.js'", JSON.stringify(engineUrl))
+    .replaceAll('./assets/approved-bank-reference-4k-', './assets/exact-approved-v8-')
+    .replace('data:image/webp;base64,', 'data:image/avif;base64,');
   const moduleUrl = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
   await import(moduleUrl);
   URL.revokeObjectURL(moduleUrl);

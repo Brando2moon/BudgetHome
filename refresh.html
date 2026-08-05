@@ -8,14 +8,14 @@
 </head>
 <body>
   <main>
-    <h1>Loading the new bank…</h1>
+    <h1>Loading the exact approved bank…</h1>
     <p>Clearing the previous saved website version.</p>
   </main>
   <script>
     Promise.all([
       caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key)))),
       navigator.serviceWorker.getRegistrations().then((registrations) => Promise.all(registrations.map((registration) => registration.unregister()))),
-    ]).finally(() => location.replace('./?release=6'));
+    ]).finally(() => location.replace('./?release=8'));
   </script>
 </body>
 </html>
