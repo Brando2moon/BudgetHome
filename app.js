@@ -12,6 +12,8 @@ for (const [href, key] of themeFiles) {
   document.head.append(theme);
 }
 
+document.querySelector('#bank-reference-art')?.setAttribute('data-bank-art-parts', '8');
+
 const partPaths = ['./app-source-1.txt', './app-source-2.txt', './app-source-3.txt'];
 
 try {
@@ -23,7 +25,8 @@ try {
   const engineUrl = new URL('./src/budgetEngine.js', window.location.href).href;
   const source = parts.join('')
     .replace("'./src/budgetEngine.js'", JSON.stringify(engineUrl))
-    .replaceAll('./assets/approved-bank-reference-4k-', './assets/approved-bank-reference-4k-v8-');
+    .replaceAll('./assets/approved-bank-reference-4k-', './assets/approved-bank-reference-4k-v8-')
+    .replace('data:image/webp;base64,', 'data:image/avif;base64,');
   const moduleUrl = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
   await import(moduleUrl);
   URL.revokeObjectURL(moduleUrl);
