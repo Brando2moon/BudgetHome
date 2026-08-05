@@ -31,16 +31,16 @@ test('registers local persistence and a continuous animation loop', async () => 
   assert.match(source, /buildBankStops/);
 });
 
-test('registers an offline service worker', async () => {
+test('registers the current offline service worker', async () => {
   const source = await readAppSource();
   assert.match(source, /serviceWorker/);
-  assert.match(await read('service-worker.js'), /camilles-finance-v5/);
+  assert.match(await read('service-worker.js'), /camilles-finance-v6/);
 });
 
 test('renders the bank, vault, furnished offices, and facial features', async () => {
   const html = await read('index.html');
   const source = await readAppSource();
-  const styles = await read('styles.css');
+  const referenceStyles = await read('reference-theme.css');
   assert.match(html, /class="bank-building"/);
   assert.match(html, /id="bank-vault"/);
   assert.match(html, /id="vault-box-editor"/);
@@ -49,7 +49,8 @@ test('renders the bank, vault, furnished offices, and facial features', async ()
   assert.match(html, /class="pixel mouth"/);
   assert.match(source, /renderVaultBoxEditor/);
   assert.match(source, /room-stage/);
-  assert.match(styles, /\.room-desk/);
+  assert.match(referenceStyles, /\.bank-room::before/);
+  assert.match(referenceStyles, /\.bank-room::after/);
 });
 
 test('ships the 4K-ready bank art and paycheck planner', async () => {
