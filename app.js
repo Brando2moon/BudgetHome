@@ -1,6 +1,6 @@
 const themeFiles = [
   ['./reference-theme.css?v=4', 'reference-theme'],
-  ['./paycheck-4k-theme.css?v=5', 'paycheck-4k-theme'],
+  ['./paycheck-4k-theme.css?v=7', 'paycheck-4k-theme'],
 ];
 
 for (const [href, key] of themeFiles) {
