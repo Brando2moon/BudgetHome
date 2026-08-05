@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
@@ -34,13 +35,12 @@ test('registers local persistence and a continuous animation loop', async () => 
 test('registers the current offline service worker', async () => {
   const source = await readAppSource();
   assert.match(source, /serviceWorker/);
-  assert.match(await read('service-worker.js'), /camilles-finance-v6/);
+  assert.match(await read('service-worker.js'), /camilles-finance-v7/);
 });
 
-test('renders the bank, vault, furnished offices, and facial features', async () => {
+test('keeps the bank data tools, savings editor, and customizable character', async () => {
   const html = await read('index.html');
   const source = await readAppSource();
-  const referenceStyles = await read('reference-theme.css');
   assert.match(html, /class="bank-building"/);
   assert.match(html, /id="bank-vault"/);
   assert.match(html, /id="vault-box-editor"/);
@@ -49,27 +49,35 @@ test('renders the bank, vault, furnished offices, and facial features', async ()
   assert.match(html, /class="pixel mouth"/);
   assert.match(source, /renderVaultBoxEditor/);
   assert.match(source, /room-stage/);
-  assert.match(referenceStyles, /\.bank-room::before/);
-  assert.match(referenceStyles, /\.bank-room::after/);
 });
 
-test('ships the 4K-ready bank art and paycheck planner', async () => {
+test('ships the exact approved 4K office art with invisible interaction zones', async () => {
   const html = await read('index.html');
   const source = await readAppSource();
   const loader = await read('app.js');
+  const exactStyles = await read('paycheck-4k-theme.css');
+
   assert.match(html, /id="bank-reference-art"/);
-  assert.match(html, /data-bank-art-parts="20"/);
+  assert.match(html, /data-bank-art-parts="5"/);
+  assert.match(html, /exact approved office background/);
+  assert.match(source, /loadBankReferenceArt/);
+  assert.match(loader, /parts\.join\(''\)/);
+  assert.match(exactStyles, /aspect-ratio:\s*1586\s*\/\s*992/);
+  assert.match(exactStyles, /\.bank-room,[\s\S]*background:\s*transparent\s*!important/);
+  assert.match(exactStyles, /\.room-banner,[\s\S]*display:\s*none\s*!important/);
+
+  const encoded = (await Promise.all(Array.from({ length: 5 }, (_, index) =>
+    read(`assets/approved-bank-reference-4k-${String(index + 1).padStart(2, '0')}.txt`)
+  ))).join('');
+  const art = Buffer.from(encoded, 'base64');
+  assert.equal(createHash('sha256').update(art).digest('hex'), 'ccc55f3aa93bac295be2566c757e24d1c1610045e992b75b5c3ccb4dd04a6d4f');
+});
+
+test('keeps the paycheck planner and closest-paycheck routing', async () => {
+  const html = await read('index.html');
+  const source = await readAppSource();
   assert.match(html, /id="paycheck-editor"/);
   assert.match(html, /id="save-paychecks"/);
   assert.match(source, /renderPaychecks/);
   assert.match(source, /routeBillsToPaychecks/);
-  assert.match(source, /loadBankReferenceArt/);
-  assert.match(loader, /parts\.join\(''\)/);
-  for (let index = 1; index <= 5; index += 1) {
-    const part = await read(`assets/approved-bank-reference-4k-${String(index).padStart(2, '0')}.txt`);
-    assert.ok(part.length > 6000);
-  }
-  for (let index = 6; index <= 20; index += 1) {
-    assert.equal(await read(`assets/approved-bank-reference-4k-${String(index).padStart(2, '0')}.txt`), '');
-  }
 });
