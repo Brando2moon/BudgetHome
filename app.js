@@ -25,7 +25,7 @@ try {
   const engineUrl = new URL('./src/budgetEngine.js', window.location.href).href;
   const source = parts.join('')
     .replace("'./src/budgetEngine.js'", JSON.stringify(engineUrl))
-    .replaceAll('./assets/approved-bank-reference-4k-', './assets/approved-bank-reference-4k-v8-')
+    .replaceAll('./assets/approved-bank-reference-4k-', './assets/exact-approved-v8-')
     .replace('data:image/webp;base64,', 'data:image/avif;base64,');
   const moduleUrl = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
   await import(moduleUrl);
