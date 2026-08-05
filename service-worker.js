@@ -12,7 +12,7 @@ const ASSETS = [
   './app-source-3.txt',
   './src/budgetEngine.js',
   './manifest.webmanifest',
-  ...Array.from({ length: 20 }, (_, index) => `./assets/approved-bank-reference-4k-v8-${String(index + 1).padStart(2, '0')}.txt`),
+  ...Array.from({ length: 8 }, (_, index) => `./assets/approved-bank-reference-4k-v8-${String(index + 1).padStart(2, '0')}.txt`),
 ];
 
 self.addEventListener('install', (event) => {
