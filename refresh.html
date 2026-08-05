@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Refreshing Camille's Finance Bank</title>
+  <style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#180526;color:#fff;font-family:system-ui;text-align:center}main{padding:2rem}strong{color:#f0c75e}</style>
+</head>
+<body>
+  <main>
+    <h1>Loading the new bank…</h1>
+    <p>Clearing the previous saved website version.</p>
+  </main>
+  <script>
+    Promise.all([
+      caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key)))),
+      navigator.serviceWorker.getRegistrations().then((registrations) => Promise.all(registrations.map((registration) => registration.unregister()))),
+    ]).finally(() => location.replace('./?release=6'));
+  </script>
+</body>
+</html>
