@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
@@ -31,45 +32,51 @@ test('registers local persistence and a continuous animation loop', async () => 
   assert.match(source, /buildBankStops/);
 });
 
-test('registers the current offline service worker', async () => {
+test('registers the release 8 service worker', async () => {
   const source = await readAppSource();
   assert.match(source, /serviceWorker/);
-  assert.match(await read('service-worker.js'), /camilles-finance-v6/);
+  assert.match(await read('service-worker.js'), /camilles-finance-v8/);
 });
 
-test('renders the bank, vault, furnished offices, and facial features', async () => {
+test('keeps the bank, savings vault, paycheck planner, and editable characters', async () => {
   const html = await read('index.html');
   const source = await readAppSource();
-  const referenceStyles = await read('reference-theme.css');
   assert.match(html, /class="bank-building"/);
   assert.match(html, /id="bank-vault"/);
   assert.match(html, /id="vault-box-editor"/);
+  assert.match(html, /id="paycheck-editor"/);
+  assert.match(html, /id="save-paychecks"/);
   assert.match(html, /class="pixel eye left-eye"/);
   assert.match(html, /class="pixel nose"/);
   assert.match(html, /class="pixel mouth"/);
   assert.match(source, /renderVaultBoxEditor/);
-  assert.match(source, /room-stage/);
-  assert.match(referenceStyles, /\.bank-room::before/);
-  assert.match(referenceStyles, /\.bank-room::after/);
-});
-
-test('ships the 4K-ready bank art and paycheck planner', async () => {
-  const html = await read('index.html');
-  const source = await readAppSource();
-  const loader = await read('app.js');
-  assert.match(html, /id="bank-reference-art"/);
-  assert.match(html, /data-bank-art-parts="20"/);
-  assert.match(html, /id="paycheck-editor"/);
-  assert.match(html, /id="save-paychecks"/);
   assert.match(source, /renderPaychecks/);
   assert.match(source, /routeBillsToPaychecks/);
-  assert.match(source, /loadBankReferenceArt/);
-  assert.match(loader, /parts\.join\(''\)/);
-  for (let index = 1; index <= 5; index += 1) {
-    const part = await read(`assets/approved-bank-reference-4k-${String(index).padStart(2, '0')}.txt`);
-    assert.ok(part.length > 6000);
-  }
-  for (let index = 6; index <= 20; index += 1) {
-    assert.equal(await read(`assets/approved-bank-reference-4k-${String(index).padStart(2, '0')}.txt`), '');
-  }
+});
+
+test('ships the exact approved AI Workshop visual as eight verified AVIF parts', async () => {
+  const loader = await read('app.js');
+  const styles = await read('paycheck-4k-theme.css');
+  const parts = await Promise.all(Array.from({ length: 8 }, (_, index) => (
+    read(`assets/exact-approved-v8-${String(index + 1).padStart(2, '0')}.txt`)
+  )));
+  const artwork = Buffer.from(parts.join(''), 'base64');
+  const digest = createHash('sha256').update(artwork).digest('hex');
+
+  assert.equal(digest, '781b4e3811c379836807946474f042ea950a8467af0e65bd4a1af175b7e5dafb');
+  assert.match(loader, /data-bank-art-parts', '8'/);
+  assert.match(loader, /exact-approved-v8-/);
+  assert.match(loader, /data:image\/avif;base64/);
+  assert.match(styles, /aspect-ratio:\s*1586\s*\/\s*992/);
+  assert.match(styles, /\.bank-room > \*/);
+  assert.match(styles, /background:\s*transparent\s*!important/);
+  assert.match(styles, /\.pixel-character, \.thought-bubble/);
+});
+
+test('publishes every exact visual part in the Pages workflow', async () => {
+  const workflow = await read('.github/workflows/deploy-pages.yml');
+  const worker = await read('service-worker.js');
+  assert.match(workflow, /cp assets\/exact-approved-v8-\*\.txt _site\/assets\//);
+  assert.match(worker, /length: 8/);
+  assert.match(worker, /exact-approved-v8-/);
 });
