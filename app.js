@@ -12,6 +12,8 @@ for (const [href, key] of themeFiles) {
   document.head.append(theme);
 }
 
+document.querySelector('#bank-reference-art')?.setAttribute('data-bank-art-parts', '35');
+
 const partPaths = ['./app-source-1.txt', './app-source-2.txt', './app-source-3.txt'];
 
 try {
