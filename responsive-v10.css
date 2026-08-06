@@ -13,7 +13,7 @@
 .bank-scene {
   position: relative;
   width: 100%;
-  max-width: var(--bank-native-width);
+  max-width: 1586px;
   aspect-ratio: 1586 / 992;
   margin-inline: auto;
   overflow: hidden;
@@ -24,7 +24,7 @@
 .bank-building {
   position: relative;
   width: 100%;
-  max-width: var(--bank-native-width);
+  max-width: 1586px;
   height: 100%;
   aspect-ratio: 1586 / 992;
   margin-inline: auto;
@@ -44,7 +44,13 @@
   transform: translateZ(0);
 }
 
-.bank-floor,
+.bank-floor {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
 .bank-rooms,
 .ambient-actors,
 .route-fx-layer {
