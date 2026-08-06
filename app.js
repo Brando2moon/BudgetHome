@@ -31,6 +31,7 @@ try {
   const moduleUrl = URL.createObjectURL(new Blob([source], { type: 'text/javascript' }));
   await import(moduleUrl);
   URL.revokeObjectURL(moduleUrl);
+  await import(new URL('./animation-v9.js', window.location.href).href);
 } catch (error) {
   console.error(error);
   document.body.innerHTML = `<main style="max-width:720px;margin:4rem auto;padding:2rem;font-family:system-ui"><h1>Camille's Finance Bank</h1><p>The app could not start. Run it through a local web server instead of opening the HTML file directly.</p><pre>${String(error)}</pre></main>`;
