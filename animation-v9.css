@@ -1,0 +1,33 @@
+/* Release 9: dramatic, door-accurate animation overlay. */
+.pixel-character.scene-actor, .pixel-character.ambient-actor, .thought-bubble, .event-burst, .route-fx-layer, .ambient-actors { opacity: 1 !important; visibility: visible !important; pointer-events: none !important; }
+.pixel-character.scene-actor, .pixel-character.ambient-actor { display: block !important; }
+.ambient-actors { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.bank-scene .scene-actor, .bank-scene .ambient-actor { position: absolute; z-index: 4; left: 50%; top: 88%; transform: translate(-50%, -50%) scaleX(var(--facing, 1)) scale(var(--actor-scale, 1)); transform-origin: center; transition: none; filter: drop-shadow(0 8px 10px rgba(16,6,27,.45)); will-change: left, top; }
+.bank-scene .scene-actor { --actor-scale: .88; z-index: 5; }
+.bank-scene .ambient-actor { --actor-scale: .7; opacity: .96; }
+.bank-scene .ambient-actor[data-actor-role="staff"] { --actor-scale: .74; }
+.bank-scene .ambient-actor[data-actor-role="customer"] { opacity: .9; }
+.bank-scene .scene-actor.walking, .bank-scene .ambient-actor.walking { animation: actorBob .5s steps(2,end) infinite; }
+.bank-scene .scene-actor.walking .left-arm, .bank-scene .scene-actor.walking .right-leg, .bank-scene .ambient-actor.walking .left-arm, .bank-scene .ambient-actor.walking .right-leg { transform: translateY(5px); }
+.bank-scene .scene-actor.walking .right-arm, .bank-scene .scene-actor.walking .left-leg, .bank-scene .ambient-actor.walking .right-arm, .bank-scene .ambient-actor.walking .left-leg { transform: translateY(-5px); }
+.bank-scene .scene-actor.dramatic-run { z-index: 8; filter: drop-shadow(0 10px 0 rgba(34,10,50,.35)) drop-shadow(0 0 12px rgba(255,220,96,.7)); }
+.bank-scene .scene-actor.arrival-pop { animation: arrivalPop .5s cubic-bezier(.2,1.5,.45,1); }
+.route-fx-layer { position: absolute; inset: 0; z-index: 6; overflow: hidden; pointer-events: none; }
+.event-burst { position: absolute; z-index: 7; left: 50%; top: 50%; opacity: 0; transform: translate(-50%,-50%) scale(.86); padding: .38rem .7rem; border-radius: 999px; border: 2px solid rgba(255,255,255,.55); background: rgba(55,21,95,.92); color: #fff8d6; font-weight: 800; font-size: .82rem; letter-spacing: .03em; text-shadow: 0 1px rgba(0,0,0,.28); box-shadow: 0 10px 25px rgba(9,4,20,.35); }
+.event-burst.show { animation: depositBurst 1.2s ease forwards; }
+.actor-money-bag { position: absolute; right: -13px; top: 49px; display: grid; place-items: center; width: 22px; height: 22px; border: 2px solid #7b4d00; border-radius: 50% 50% 45% 45%; background: #f2bd3f; color: #4d2d00; font: 900 13px/1 monospace; box-shadow: 2px 3px rgba(48,26,0,.5); transform: scaleX(var(--facing,1)); }
+.ambient-actor .actor-money-bag { width: 18px; height: 18px; right: -9px; top: 47px; font-size: 10px; opacity: .82; }
+.door-flash { position: absolute; width: 18px; height: 30px; border: 3px solid rgba(255,226,110,.98); border-radius: 8px; background: rgba(255,245,180,.28); box-shadow: 0 0 8px #fff4ad, 0 0 22px #f7b733, inset 0 0 10px rgba(255,255,255,.75); transform: translate(-50%,-50%) scale(.45); animation: doorFlash .7s ease-out forwards; }
+.coin-particle { position: absolute; display: grid; place-items: center; width: 15px; height: 15px; border-radius: 50%; background: #f3c64f; border: 2px solid #8c5a00; color: #5a3600; font: 900 10px/1 monospace; box-shadow: 0 0 7px rgba(255,223,107,.85); transform: translate(-50%,-50%); animation: coinFlight .95s cubic-bezier(.12,.62,.24,1) var(--delay,0ms) forwards; }
+.coin-particle.vault-coin { background: #f7e28a; box-shadow: 0 0 8px #fff7cb, 0 0 18px #f2c94c; }
+.bank-scene.scene-impact { animation: sceneImpact .55s steps(2,end); }
+.bank-scene.scene-impact::after { content: ''; position: absolute; inset: 0; z-index: 5; pointer-events: none; background: radial-gradient(circle at 50% 50%, rgba(255,228,122,.22), transparent 38%); animation: impactGlow .55s ease-out forwards; }
+.bank-scene.vault-impact::after { background: radial-gradient(circle at 84% 23%, rgba(255,235,145,.42), transparent 31%); }
+@keyframes actorBob { 0%,100% { margin-top: 0; } 50% { margin-top: 1px; } }
+@keyframes depositBurst { 0% { opacity:0; transform:translate(-50%,-42%) scale(.86); } 12%,70% { opacity:1; } 100% { opacity:0; transform:translate(-50%,-88%) scale(1.02); } }
+@keyframes doorFlash { 0% { opacity:0; transform:translate(-50%,-50%) scale(.4); } 25% { opacity:1; transform:translate(-50%,-50%) scale(1.2); } 100% { opacity:0; transform:translate(-50%,-50%) scale(1.65); } }
+@keyframes coinFlight { 0% { opacity:0; transform:translate(-50%,-50%) scale(.35); } 12%,72% { opacity:1; } 100% { opacity:0; transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.1) rotate(280deg); } }
+@keyframes sceneImpact { 0%,100% { transform:translate(0); } 20% { transform:translate(-2px,1px); } 40% { transform:translate(2px,-1px); } 60% { transform:translate(-1px,-1px); } 80% { transform:translate(1px,1px); } }
+@keyframes impactGlow { 0% { opacity:0; } 22% { opacity:1; } 100% { opacity:0; } }
+@keyframes arrivalPop { 0%,100% { transform:translate(-50%,-50%) scaleX(var(--facing,1)) scale(var(--actor-scale,1)); } 50% { transform:translate(-50%,-58%) scaleX(var(--facing,1)) scale(calc(var(--actor-scale,1) * 1.12)); } }
+@media (prefers-reduced-motion: reduce) { .bank-scene .scene-actor, .bank-scene .ambient-actor, .door-flash, .coin-particle, .bank-scene.scene-impact, .bank-scene .scene-actor.arrival-pop { animation-duration:.01ms !important; animation-iteration-count:1 !important; } }

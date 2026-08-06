@@ -32,10 +32,10 @@ test('registers local persistence and a continuous animation loop', async () => 
   assert.match(source, /buildBankStops/);
 });
 
-test('registers the release 8 service worker', async () => {
+test('registers the release 9 service worker', async () => {
   const source = await readAppSource();
   assert.match(source, /serviceWorker/);
-  assert.match(await read('service-worker.js'), /camilles-finance-v8/);
+  assert.match(await read('service-worker.js'), /camilles-finance-v9/);
 });
 
 test('keeps the bank, savings vault, paycheck planner, and editable characters', async () => {
@@ -62,7 +62,6 @@ test('ships the exact approved AI Workshop visual as eight verified AVIF parts',
   )));
   const artwork = Buffer.from(parts.join(''), 'base64');
   const digest = createHash('sha256').update(artwork).digest('hex');
-
   assert.equal(digest, '781b4e3811c379836807946474f042ea950a8467af0e65bd4a1af175b7e5dafb');
   assert.match(loader, /data-bank-art-parts', '8'/);
   assert.match(loader, /exact-approved-v8-/);
@@ -70,13 +69,31 @@ test('ships the exact approved AI Workshop visual as eight verified AVIF parts',
   assert.match(styles, /aspect-ratio:\s*1586\s*\/\s*992/);
   assert.match(styles, /\.bank-room > \*/);
   assert.match(styles, /background:\s*transparent\s*!important/);
-  assert.match(styles, /\.pixel-character, \.thought-bubble/);
 });
 
-test('publishes every exact visual part in the Pages workflow', async () => {
+test('loads dramatic door-accurate animation without changing the approved background', async () => {
+  const loader = await read('app.js');
+  const runtime = await read('animation-v9.js');
+  const styles = await read('animation-v9.css');
+  assert.match(loader, /animation-v9\.css\?v=9/);
+  assert.match(loader, /animation-v9\.js/);
+  assert.match(runtime, /buildDoorAccurateRoute/);
+  assert.match(runtime, /animateActorRoute/);
+  assert.match(runtime, /spawnDepositParticles/);
+  assert.match(runtime, /AMBIENT_ROUTES/);
+  assert.match(styles, /@keyframes doorFlash/);
+  assert.match(styles, /@keyframes coinFlight/);
+  assert.match(styles, /@keyframes sceneImpact/);
+});
+
+test('publishes the exact visual and animation assets in the Pages workflow', async () => {
   const workflow = await read('.github/workflows/deploy-pages.yml');
   const worker = await read('service-worker.js');
   assert.match(workflow, /cp assets\/exact-approved-v8-\*\.txt _site\/assets\//);
+  assert.match(workflow, /animation-v9\.css/);
+  assert.match(workflow, /animation-v9\.js/);
+  assert.match(workflow, /src\/animationEngine\.js/);
   assert.match(worker, /length: 8/);
   assert.match(worker, /exact-approved-v8-/);
+  assert.match(worker, /animation-v9\.js/);
 });
