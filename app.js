@@ -2,6 +2,7 @@ const themeFiles = [
   ['./reference-theme.css?v=4', 'reference-theme'],
   ['./paycheck-4k-theme.css?v=8', 'paycheck-4k-theme'],
   ['./animation-v9.css?v=9', 'animation-v9'],
+  ['./responsive-v10.css?v=10', 'responsive-v10'],
 ];
 
 for (const [href, key] of themeFiles) {

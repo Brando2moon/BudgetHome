@@ -38,7 +38,7 @@ jobs:
       - name: Prepare static site
         run: |
           mkdir -p _site/src _site/assets
-          cp index.html refresh.html styles.css reference-theme.css paycheck-4k-theme.css animation-v9.css app.js animation-v9.js app-source-*.txt service-worker.js manifest.webmanifest _site/
+          cp index.html refresh.html styles.css reference-theme.css paycheck-4k-theme.css animation-v9.css responsive-v10.css app.js animation-v9.js app-source-*.txt service-worker.js manifest.webmanifest _site/
           cp src/budgetEngine.js src/animationEngine.js _site/src/
           cp assets/approved-bank-reference-4k-*.txt _site/assets/
           cp assets/exact-approved-v8-*.txt _site/assets/
