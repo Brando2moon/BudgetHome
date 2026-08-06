@@ -1,4 +1,4 @@
-const CACHE_NAME = 'camilles-finance-v8';
+const CACHE_NAME = 'camilles-finance-v9';
 const ASSETS = [
   './',
   './index.html',
@@ -6,11 +6,14 @@ const ASSETS = [
   './styles.css',
   './reference-theme.css',
   './paycheck-4k-theme.css',
+  './animation-v9.css',
   './app.js',
+  './animation-v9.js',
   './app-source-1.txt',
   './app-source-2.txt',
   './app-source-3.txt',
   './src/budgetEngine.js',
+  './src/animationEngine.js',
   './manifest.webmanifest',
   ...Array.from({ length: 8 }, (_, index) => `./assets/exact-approved-v8-${String(index + 1).padStart(2, '0')}.txt`),
 ];
@@ -29,27 +32,17 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-
   if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request, { cache: 'no-store' })
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', copy));
-          return response;
-        })
-        .catch(() => caches.match('./index.html')),
-    );
+    event.respondWith(fetch(event.request, { cache: 'no-store' }).then((response) => {
+      const copy = response.clone();
+      caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', copy));
+      return response;
+    }).catch(() => caches.match('./index.html')));
     return;
   }
-
-  event.respondWith(
-    fetch(event.request, { cache: 'no-store' })
-      .then((response) => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-        return response;
-      })
-      .catch(() => caches.match(event.request)),
-  );
+  event.respondWith(fetch(event.request, { cache: 'no-store' }).then((response) => {
+    const copy = response.clone();
+    caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+    return response;
+  }).catch(() => caches.match(event.request)));
 });
