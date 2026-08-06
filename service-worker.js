@@ -1,4 +1,4 @@
-const CACHE_NAME = 'camilles-finance-v9';
+const CACHE_NAME = 'camilles-finance-v10';
 const ASSETS = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const ASSETS = [
   './reference-theme.css',
   './paycheck-4k-theme.css',
   './animation-v9.css',
+  './responsive-v10.css',
   './app.js',
   './animation-v9.js',
   './app-source-1.txt',
