@@ -32,10 +32,10 @@ test('registers local persistence and a continuous animation loop', async () => 
   assert.match(source, /buildBankStops/);
 });
 
-test('registers the release 9 service worker', async () => {
+test('registers the release 10 service worker', async () => {
   const source = await readAppSource();
   assert.match(source, /serviceWorker/);
-  assert.match(await read('service-worker.js'), /camilles-finance-v9/);
+  assert.match(await read('service-worker.js'), /camilles-finance-v10/);
 });
 
 test('keeps the bank, savings vault, paycheck planner, and editable characters', async () => {
@@ -86,14 +86,30 @@ test('loads dramatic door-accurate animation without changing the approved backg
   assert.match(styles, /@keyframes sceneImpact/);
 });
 
-test('publishes the exact visual and animation assets in the Pages workflow', async () => {
+test('loads a sharp responsive bank background while keeping percentage overlays aligned', async () => {
+  const loader = await read('app.js');
+  const responsive = await read('responsive-v10.css');
+  assert.match(loader, /responsive-v10\.css\?v=10/);
+  assert.match(responsive, /\.bank-scene\s*\{[^}]*width:\s*100%/s);
+  assert.match(responsive, /max-width:\s*1586px/);
+  assert.match(responsive, /aspect-ratio:\s*1586\s*\/\s*992/);
+  assert.match(responsive, /\.bank-reference-art\s*\{[^}]*object-fit:\s*contain/s);
+  assert.match(responsive, /image-rendering:\s*auto/);
+  assert.match(responsive, /\.bank-floor\s*\{[^}]*inset:\s*0/s);
+  assert.match(responsive, /@media\s*\(max-width:\s*768px\)/);
+  assert.match(responsive, /clamp\(/);
+});
+
+test('publishes the exact visual, animation, and responsive assets in the Pages workflow', async () => {
   const workflow = await read('.github/workflows/deploy-pages.yml');
   const worker = await read('service-worker.js');
   assert.match(workflow, /cp assets\/exact-approved-v8-\*\.txt _site\/assets\//);
   assert.match(workflow, /animation-v9\.css/);
   assert.match(workflow, /animation-v9\.js/);
+  assert.match(workflow, /responsive-v10\.css/);
   assert.match(workflow, /src\/animationEngine\.js/);
   assert.match(worker, /length: 8/);
   assert.match(worker, /exact-approved-v8-/);
   assert.match(worker, /animation-v9\.js/);
+  assert.match(worker, /responsive-v10\.css/);
 });
