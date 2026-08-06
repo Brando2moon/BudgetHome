@@ -1,0 +1,139 @@
+/* Release 10: sharp, responsive bank scene that preserves the approved 1586×992 composition. */
+:root {
+  --bank-native-width: 1586px;
+  --bank-native-ratio: 1586 / 992;
+}
+
+.bank-frame.panel {
+  width: 100%;
+  max-width: none;
+  margin-inline: auto;
+}
+
+.bank-scene {
+  position: relative;
+  width: 100%;
+  max-width: var(--bank-native-width);
+  aspect-ratio: 1586 / 992;
+  margin-inline: auto;
+  overflow: hidden;
+  background: #170b24;
+  container-type: inline-size;
+}
+
+.bank-building {
+  position: relative;
+  width: 100%;
+  max-width: var(--bank-native-width);
+  height: 100%;
+  aspect-ratio: 1586 / 992;
+  margin-inline: auto;
+  overflow: hidden;
+}
+
+.bank-reference-art {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  image-rendering: auto !important;
+  -ms-interpolation-mode: bicubic;
+  transform: translateZ(0);
+}
+
+.bank-floor,
+.bank-rooms,
+.ambient-actors,
+.route-fx-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.bank-room,
+.bank-vault,
+.bank-corridor,
+.bank-door {
+  transform-origin: center;
+}
+
+.thought-bubble {
+  max-width: min(32%, 320px);
+  font-size: clamp(0.62rem, 1.1vw, 0.82rem);
+  line-height: 1.25;
+}
+
+.event-burst {
+  max-width: min(44%, 360px);
+  font-size: clamp(0.6rem, 1vw, 0.82rem);
+  white-space: normal;
+  text-align: center;
+}
+
+@media (max-width: 1024px) {
+  .bank-frame.panel,
+  .bank-scene,
+  .bank-building {
+    border-radius: 16px;
+  }
+
+  .bank-scene .scene-actor {
+    --actor-scale: 0.74;
+  }
+
+  .bank-scene .ambient-actor {
+    --actor-scale: 0.6;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-shell {
+    width: 100%;
+    padding-inline: clamp(6px, 2vw, 14px);
+  }
+
+  .bank-frame.panel,
+  .bank-scene,
+  .bank-building {
+    border-radius: 12px;
+  }
+
+  .bank-scene .scene-actor {
+    --actor-scale: 0.62;
+  }
+
+  .bank-scene .ambient-actor,
+  .bank-scene .ambient-actor[data-actor-role="staff"] {
+    --actor-scale: 0.5;
+  }
+
+  .thought-bubble {
+    max-width: 44%;
+    font-size: clamp(0.52rem, 2.25vw, 0.72rem);
+    padding: clamp(4px, 1.4vw, 8px);
+  }
+
+  .event-burst {
+    max-width: 52%;
+    font-size: clamp(0.5rem, 2.1vw, 0.7rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .bank-scene .scene-actor {
+    --actor-scale: 0.52;
+  }
+
+  .bank-scene .ambient-actor,
+  .bank-scene .ambient-actor[data-actor-role="staff"] {
+    --actor-scale: 0.42;
+  }
+
+  .thought-bubble {
+    max-width: 48%;
+  }
+}
